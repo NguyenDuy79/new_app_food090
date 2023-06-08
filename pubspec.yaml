@@ -1,0 +1,47 @@
+name: new_ap
+description: A new Flutter project.
+publish_to: 'none' 
+version: 1.0.0+1
+environment:
+  sdk: '>=2.19.3 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  cloud_firestore: ^4.5.2
+  firebase_core: ^2.8.0
+  firebase_auth: ^4.3.0
+  image_picker: ^0.8.7+1
+  firebase_storage: ^11.1.0
+  flutter_rating_bar: ^4.0.1
+  provider: ^6.0.5
+  flutter_slidable: ^3.0.0
+  get: ^4.6.5
+  flutter_facebook_auth: ^5.0.7
+  google_sign_in: ^6.1.0
+  font_awesome_flutter: ^10.4.0
+  smooth_page_indicator: ^1.1.0
+  sliver_tools: ^0.2.10
+  shared_preferences: ^2.0.20
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+
+  uses-material-design: true
+
+  
+  assets:
+    - assets/image/image_food.png
+    - assets/image/13.png
+    - assets/image/sign_up.png
+    - assets/image/chef.png
+    - assets/image/user.png
+    - assets/image/driver.png
+    - assets/image/promocode.png
+    - assets/image/freeship.png
+  
