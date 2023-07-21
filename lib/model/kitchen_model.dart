@@ -28,4 +28,16 @@ class KitchenModel {
     id = map['id'];
     rating = map['rating'];
   }
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['Name'] = name;
+    data['Image'] = imageUrl;
+    data['imagechef'] = imagechefUrl;
+    data['Intoduct'] = intoduct;
+    data['Ship'] = ship;
+    data['Time'] = time;
+    data['rating'] = rating;
+    return data;
+  }
 }

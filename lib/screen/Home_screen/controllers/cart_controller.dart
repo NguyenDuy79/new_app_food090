@@ -1,23 +1,30 @@
-// ignore_for_file: invalid_return_type_for_catch_error
+import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:new_ap/database/Firebase_partner.dart';
-import 'package:new_ap/database/Firebase_users.dart';
+import 'package:new_ap/config/app_another.dart';
+import 'package:new_ap/config/firebase_api.dart';
 import 'package:new_ap/model/cart_model.dart';
-import '../../../database/Firebase_checkout.dart';
+import 'package:new_ap/model/orders_model.dart';
+import '../../../config/app_colors.dart';
 import '../../../model/promo_model.dart';
 
 class CartController extends GetxController {
+  final Rx<List<CartModel>> _cart = Rx<List<CartModel>>([]);
+  List<CartModel> get cart => _cart.value;
+  List<String> kitchen = [];
   // Promocode
   RxBool checkShipping = false.obs;
   RxBool checkPromo = false.obs;
   RxBool error = false.obs;
-  List<PromoCode> _promoCode = [];
-  List<PromoCode> get promoCode => _promoCode;
-  List<ShippingPromoCode> _shippingPromoCode = [];
-  List<ShippingPromoCode> get shippingPromoCode => _shippingPromoCode;
+  final Rx<List<PromoCode>> _promoCode = Rx<List<PromoCode>>([]);
+  List<PromoCode> get promoCode => _promoCode.value;
+  final Rx<List<ShippingPromoCode>> _shippingPromoCode =
+      Rx<List<ShippingPromoCode>>([]);
+  List<ShippingPromoCode> get shippingPromoCode => _shippingPromoCode.value;
   bool extend = false;
   int selectIndexShipping = -1;
   int selectIndexPromo = -1;
@@ -30,20 +37,36 @@ class CartController extends GetxController {
   //Thanh toán
   RxInt count = 0.obs;
   RxInt selectIndex = (-1).obs;
-  final int ship = 40000;
+  RxInt ship = 0.obs;
   RxInt reduceShip = 0.obs;
   RxDouble reduce = (0.0).obs;
 
-  CartController() {
-    getPromoCode();
-    getShippingPromoCode();
+  @override
+  void onInit() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      _cart.bindStream(
+          AppAnother().cartStream(FirebaseAuth.instance.currentUser!.uid));
+      _promoCode.bindStream(AppAnother().promoCodeStream());
+      _shippingPromoCode.bindStream(AppAnother().shippingPromoCode());
+    }
+
+    super.onInit();
   }
 
   //cart
+  getKitchen() {
+    if (_cart.value.isNotEmpty) {
+      for (int i = 0; i < _cart.value.length; i++) {
+        if (!kitchen.contains(_cart.value[i].kitchenId)) {
+          kitchen.add(_cart.value[i].kitchenId);
+        }
+      }
+    }
+  }
 
   Future<void> deleteCart(String cartId) async {
     if (FirebaseAuth.instance.currentUser != null) {
-      await FireBaseUsers()
+      await FirebaseApi()
           .cartCollection(FirebaseAuth.instance.currentUser!.uid)
           .doc(cartId)
           .delete()
@@ -53,26 +76,24 @@ class CartController extends GetxController {
         getCount();
         getApplyPromoCode();
         getApplyShipping();
-      }).catchError((error) => Get.snackbar('Failde to delete', error));
+        // ignore: invalid_return_type_for_catch_error
+      }).catchError(
+              // ignore: invalid_return_type_for_catch_error
+              (error) => Get.snackbar('Failde to delete', error.toString()));
     }
   }
 
   Future<void> updateQuantity(CartModel cartItem, int quantity) async {
-    await FireBaseUsers()
+    cartItem.quantity = quantity;
+    log(cartItem.quantity.toString());
+    await FirebaseApi()
         .cartCollection(FirebaseAuth.instance.currentUser!.uid)
         .doc(cartItem.id)
         .update({'quantity': quantity}).then((value) {
       for (int i = 0; i < cartOrder.length; i++) {
         if (cartOrder[i].id == cartItem.id) {
           cartOrder.removeWhere((element) => element.id == cartItem.id);
-          cartOrder.add(CartModel(
-              id: cartItem.id,
-              name: cartItem.name,
-              price: cartItem.price,
-              quantity: quantity,
-              url: cartItem.url,
-              kitchenId: cartItem.kitchenId,
-              productId: cartItem.productId));
+          cartOrder.add(cartItem);
           getCount();
         }
       }
@@ -90,19 +111,17 @@ class CartController extends GetxController {
     for (int i = 0; i < cartOrder.length; i++) {
       count = count + cartOrder[i].quantity * int.parse(cartOrder[i].price);
     }
+    if (count.value > 0) {
+      ship.value = 40000;
+    } else {
+      ship.value = 0;
+    }
   }
 
   // Kiểm tra checkbox
 
   chooseProduct(CartModel cartItem) {
-    cartOrder.add(CartModel(
-        id: cartItem.id,
-        name: cartItem.name,
-        price: cartItem.price,
-        quantity: cartItem.quantity,
-        url: cartItem.url,
-        kitchenId: cartItem.kitchenId,
-        productId: cartItem.productId));
+    cartOrder.add(cartItem);
     getCount();
   }
 
@@ -115,9 +134,9 @@ class CartController extends GetxController {
   chooseShippingPromo(int indexShipping) {
     selectIndexShipping = indexShipping;
     selectShippingPromoCode = ShippingPromoCode(
-        id: _shippingPromoCode[indexShipping].id,
-        applyPrice: _shippingPromoCode[indexShipping].applyPrice,
-        maximum: _shippingPromoCode[indexShipping].maximum);
+        id: _shippingPromoCode.value[indexShipping].id,
+        applyPrice: _shippingPromoCode.value[indexShipping].applyPrice,
+        maximum: _shippingPromoCode.value[indexShipping].maximum);
     update();
   }
 
@@ -125,11 +144,11 @@ class CartController extends GetxController {
     selectIndexPromo = index;
 
     selectPromoCode = PromoCode(
-        id: _promoCode[index].id,
-        applyPrice: _promoCode[index].applyPrice,
-        maximum: _promoCode[index].maximum,
-        reducePercent: _promoCode[index].reducePercent,
-        reduceNumber: _promoCode[index].reduceNumber);
+        id: _promoCode.value[index].id,
+        applyPrice: _promoCode.value[index].applyPrice,
+        maximum: _promoCode.value[index].maximum,
+        reducePercent: _promoCode.value[index].reducePercent,
+        reduceNumber: _promoCode.value[index].reduceNumber);
     update();
   }
 
@@ -147,37 +166,24 @@ class CartController extends GetxController {
     update();
   }
 
-  getShippingPromoCode() async {
-    await FirebaseCheckout().getShippingPromoCode().then((value) {
-      if (value.isNotEmpty) {
-        for (int i = 0; value.length > i; i++) {
-          _shippingPromoCode.add(ShippingPromoCode(
-              id: (value[i].data() as Map<String, dynamic>)['id'],
-              applyPrice:
-                  (value[i].data() as Map<String, dynamic>)['apply price'],
-              maximum: (value[i].data() as Map<String, dynamic>)['maximum']));
-        }
-      } else {
-        _shippingPromoCode = [];
-      }
-    });
-  }
-
   getApplyPromoCode() {
+    reduce.value = 0;
     if (selectPromoCode.id != '') {
       checkPromo.value = true;
       if (count.value != 0) {
         error.value = false;
         if (count.value >= selectPromoCode.applyPrice) {
-          if (selectPromoCode.reducePercent != 0) {
-            reduce.value = selectPromoCode.maximum.toDouble();
-          } else {
+          if (selectPromoCode.reducePercent == 0) {
             reduce.value = selectPromoCode.reduceNumber.toDouble();
-          }
-          if ((count.value * (selectPromoCode.reducePercent / 100)) >
-              selectPromoCode.maximum.toDouble()) {
           } else {
-            reduce.value = count.value * (selectPromoCode.reducePercent / 100);
+            if ((count.value * (selectPromoCode.reducePercent / 100)) >
+                selectPromoCode.maximum.toDouble()) {
+              reduce.value =
+                  count.value * (selectPromoCode.reducePercent / 100);
+            } else {
+              reduce.value =
+                  count.value * (selectPromoCode.reducePercent / 100);
+            }
           }
         } else {
           reduce = (0.0).obs;
@@ -193,33 +199,8 @@ class CartController extends GetxController {
     }
   }
 
-  getPromoCode() async {
-    await FirebaseCheckout().getPromoCode().then((value) {
-      if (value.isNotEmpty) {
-        for (int i = 0; i < value.length; i++) {
-          _promoCode.add(PromoCode(
-              id: (value[i].data() as Map<String, dynamic>)['id'],
-              applyPrice:
-                  (value[i].data() as Map<String, dynamic>)['apply price'],
-              maximum: (value[i].data() as Map<String, dynamic>)['maximum'],
-              reducePercent:
-                  (value[i].data() as Map<String, dynamic>)['reduce percent'],
-              reduceNumber:
-                  (value[i].data() as Map<String, dynamic>)['reduce number']));
-        }
-      } else {
-        _promoCode = [];
-      }
-    });
-    if (FirebaseAuth.instance.currentUser != null) {
-      await FireBaseUsers()
-          .getOrderFirestore(FirebaseAuth.instance.currentUser!.uid)
-          .then((value) {
-        if (value.isNotEmpty) {
-          _promoCode.removeWhere((element) => element.id == 'firstorder');
-        }
-      });
-    }
+  firstOrder() async {
+    if (FirebaseAuth.instance.currentUser != null) {}
   }
 
   getApplyShipping() {
@@ -227,12 +208,12 @@ class CartController extends GetxController {
       checkShipping.value = true;
       if (count.value >= selectShippingPromoCode.applyPrice) {
         if (selectShippingPromoCode.maximum == 0) {
-          reduceShip.value = ship;
+          reduceShip.value = ship.value;
         } else {
-          if (selectShippingPromoCode.maximum < ship) {
+          if (selectShippingPromoCode.maximum < ship.value) {
             reduceShip.value = selectShippingPromoCode.maximum;
           } else {
-            reduceShip.value = ship;
+            reduceShip.value = ship.value;
           }
         }
       } else {
@@ -243,9 +224,9 @@ class CartController extends GetxController {
     }
   }
 
-  deleteCartOrder() async {
+  Future<void> deleteCartOrder() async {
     for (int i = 0; i < cartOrder.length; i++) {
-      await FireBaseUsers()
+      await FirebaseApi()
           .cartCollection(FirebaseAuth.instance.currentUser!.uid)
           .doc(cartOrder[i].id)
           .delete();
@@ -253,54 +234,113 @@ class CartController extends GetxController {
   }
 
   // Đặt hàng
-  Future<void> orders() async {
+  Future<void> orders(BuildContext ctx) async {
+    DateTime dateTime = DateTime.now();
+    Timestamp timestamp = Timestamp.now();
+
     List<String> product = [];
     List<String> name = [];
     List<String> url = [];
     List<int> quantity = [];
+    List<String> price = [];
     for (int i = 0; i < cartOrder.length; i++) {
       product.add(cartOrder[i].productId);
       name.add(cartOrder[i].name);
       url.add(cartOrder[i].url);
       quantity.add(cartOrder[i].quantity);
+
+      price.add(cartOrder[i].price);
     }
-    String dateTime = DateTime.now().toString();
-    if (FirebaseAuth.instance.currentUser != null) {
-      await FireBaseUsers()
-          .orderCollection(FirebaseAuth.instance.currentUser!.uid)
-          .doc(dateTime)
-          .set({
-        'id': dateTime,
-        'price': (count.value + ship - reduce.toInt() - reduceShip.value),
-        'product': FieldValue.arrayUnion(product),
-        'promoCode': selectPromoCode.id,
-        'shippingCode': selectShippingPromoCode.id,
-        'name': FieldValue.arrayUnion(name),
-        'url': FieldValue.arrayUnion(url),
-        'quantity': FieldValue.arrayUnion(quantity),
-        'kitchenId': cartOrder[0].kitchenId,
-        'status': 'active',
-        'status delivery': 'Chờ nhận đơn'
-      }).then((value) async {
-        await FirebasePartner().ordersNow.doc(dateTime).set({
-          'id': dateTime,
-          'price': (count.value + ship - reduce.toInt() - reduceShip.value),
-          'product': FieldValue.arrayUnion(product),
-          'promoCode': selectPromoCode.id,
-          'shippingCode': selectShippingPromoCode.id,
-          'name': FieldValue.arrayUnion(name),
-          'url': FieldValue.arrayUnion(url),
-          'quantity': FieldValue.arrayUnion(quantity),
-          'status': 'active',
-          'kitchenId': cartOrder[0].kitchenId,
-          'status delivery': 'Chờ nhận đơn',
-          'userId': FirebaseAuth.instance.currentUser!.uid
-        }).catchError((error) {
-          throw error;
-        });
-      }).catchError((error) {
-        throw error;
-      });
+    OrderModel newOrder = OrderModel(
+        id: dateTime.toString(),
+        name: name,
+        timeStamp: timestamp,
+        ship: ship.value.toString(),
+        timeOne: '',
+        timeTwo: '',
+        timeThree: '',
+        timeFour: '',
+        productId: product,
+        price: (count.value + ship.value - reduce.toInt() - reduceShip.value),
+        reduce: reduce.value.toString(),
+        reduceShip: reduceShip.value.toString(),
+        productPrice: product,
+        kitchenId: cartOrder[0].kitchenId,
+        kitchenName: cartOrder[0].kitchenName,
+        promoCode: selectPromoCode.id,
+        uid: AppAnother.userAuth!.uid,
+        quantity: quantity,
+        shippingCode: selectShippingPromoCode.id,
+        status: 'Active',
+        statusDelivery: 'Chờ nhận đơn',
+        url: url);
+    Map<String, List> getQuantity = {'quantity': quantity};
+    Map<String, List> getPrice = {'productPrice': price};
+    if (AppAnother.userAuth != null) {
+      try {
+        await FirebaseApi()
+            .orderCollection(AppAnother.userAuth!.uid)
+            .doc(dateTime.toString())
+            .set(newOrder.toJson())
+            .then((value) async {
+          await FirebaseApi()
+              .orderCollection(AppAnother.userAuth!.uid)
+              .doc(dateTime.toString())
+              .update(getQuantity);
+          await FirebaseApi()
+              .orderCollection(AppAnother.userAuth!.uid)
+              .doc(dateTime.toString())
+              .update(getPrice);
+        }).catchError((e) => throw e);
+        await FirebaseApi()
+            .orderNow
+            .doc(dateTime.toString())
+            .set(newOrder.toJson())
+            .then((value) async {
+          await FirebaseApi()
+              .orderNow
+              .doc(dateTime.toString())
+              .update(getQuantity);
+
+          await FirebaseApi()
+              .orderNow
+              .doc(dateTime.toString())
+              .update(getPrice);
+        }).catchError((e) => throw e);
+      } on PlatformException catch (err) {
+        var message = 'An error, try again';
+        if (err.message != null) {
+          message = err.message!;
+        }
+        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+          content: Text(message),
+          backgroundColor: ColorConstants.colorRed1,
+        ));
+      } catch (err) {
+        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+          content: Text(err.toString()),
+          backgroundColor: ColorConstants.colorRed1,
+        ));
+      }
     }
+  }
+
+  setValue() {
+    count.value = 0;
+    ship.value = 0;
+    selectIndex.value = -1;
+    selectIndexShipping = -1;
+    selectIndexPromo = -1;
+    reduce.value = 0;
+    reduceShip.value = 0;
+    cartOrder = [];
+    checkPromo.value = false;
+    checkShipping.value = false;
+    selectShippingPromoCode =
+        ShippingPromoCode(id: '', applyPrice: 0, maximum: 0);
+    selectPromoCode = PromoCode(
+        id: '', applyPrice: 0, maximum: 0, reducePercent: 0, reduceNumber: 0);
   }
 }

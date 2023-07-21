@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:new_ap/model/categories.dart';
+import 'package:new_ap/config/app_font.dart';
+import 'package:new_ap/config/app_storage_path.dart';
+
+import '../../../../config/app_dimens.dart';
 
 class CategoriesWidget extends StatelessWidget {
   const CategoriesWidget({super.key});
@@ -8,25 +11,34 @@ class CategoriesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      itemCount: CategoriesModel.categoriesList.length,
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () {},
-        child: SizedBox(
-          height: 120,
-          width: 70,
-          child: Column(children: <Widget>[
-            CircleAvatar(
-              backgroundImage:
-                  NetworkImage(CategoriesModel.categoriesList[index]['image']),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Text(
-              CategoriesModel.categoriesList[index]['title'],
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            )
-          ]),
+      itemCount: 6,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppDimens.dimens_5),
+        child: GestureDetector(
+          onTap: () {},
+          child: SizedBox(
+            height: AppDimens.dimens_120,
+            width: AppDimens.dimens_70,
+            child: Column(children: <Widget>[
+              SizedBox(
+                width: AppDimens.dimens_60,
+                height: AppDimens.dimens_60,
+                child: CircleAvatar(
+                  backgroundImage: AssetImage(
+                      AppStoragePath.categories[index]['image'] as String),
+                ),
+              ),
+              const SizedBox(
+                height: AppDimens.dimens_10,
+              ),
+              Text(
+                AppStoragePath.categories[index]['title'] as String,
+                style: const TextStyle(
+                    fontSize: AppDimens.dimens_18,
+                    fontWeight: AppFont.semiBold),
+              )
+            ]),
+          ),
         ),
       ),
     );

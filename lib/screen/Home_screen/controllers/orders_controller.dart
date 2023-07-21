@@ -1,17 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'package:new_ap/database/Firebase_users.dart';
 import 'package:new_ap/model/orders_model.dart';
+import '../../../config/firebase_api.dart';
 
 class OrderController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController controller;
-  List<OrderModel> activeOrders = [];
-  List<OrderModel> completedOrders = [];
-  List<OrderModel> cancelledOrders = [];
+  int limit = 20;
+  final Rx<List<OrderModel>> _allOrders = Rx<List<OrderModel>>([]);
 
   final List<Tab> myTabs = const [
     Tab(
@@ -27,6 +24,9 @@ class OrderController extends GetxController
   @override
   void onInit() {
     controller = TabController(length: 3, vsync: this);
+    if (FirebaseAuth.instance.currentUser != null) {
+      _allOrders.bindStream(getOrder(FirebaseAuth.instance.currentUser!.uid));
+    }
     super.onInit();
   }
 
@@ -36,35 +36,58 @@ class OrderController extends GetxController
     super.onClose();
   }
 
-  getActiveOrder(List<QueryDocumentSnapshot<Object?>> value) {
-    activeOrders = [];
-    for (int i = 0; i < value.length; i++) {
-      if ((value[i].data() as Map<String, dynamic>)['status'] == 'active') {
-        activeOrders
-            .add(OrderModel.fromJson(value[i].data() as Map<String, dynamic>));
+  Stream<List<OrderModel>> getOrder(String uid) {
+    return FirebaseApi()
+        .orderCollection(uid)
+        .orderBy('timeStamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((query) {
+      List<OrderModel> listCartStream = [];
+      if (query.docs.isNotEmpty) {
+        for (int j = 0; j < query.docs.length; j++) {
+          if ((query.docs[j].data() as Map<String, dynamic>)['quantity'] !=
+                  null &&
+              (query.docs[j].data() as Map<String, dynamic>)['productPrice'] !=
+                  null) {
+            listCartStream.add(OrderModel.fromJson(
+                query.docs[j].data() as Map<String, dynamic>));
+          }
+        }
       }
-    }
-    print(activeOrders.length);
+
+      return listCartStream;
+    });
   }
 
-  getCompletedOrder(List<QueryDocumentSnapshot<Object?>> value) {
-    completedOrders = [];
-    for (int i = 0; i < value.length; i++) {
-      if ((value[i].data() as Map<String, dynamic>)['status'] == 'completed') {
-        completedOrders
-            .add(OrderModel.fromJson(value[i].data() as Map<String, dynamic>));
+  List<OrderModel> getActiveOrder() {
+    List<OrderModel> activeOrders = [];
+    for (int i = 0; i < _allOrders.value.length; i++) {
+      if (_allOrders.value[i].status == 'Active') {
+        activeOrders.add(_allOrders.value[i]);
       }
     }
+    return activeOrders;
   }
 
-  getCancelledOrder(List<QueryDocumentSnapshot<Object?>> value) {
-    cancelledOrders = [];
-    for (int i = 0; i < value.length; i++) {
-      if ((value[i].data() as Map<String, dynamic>)['status'] == 'cancelled') {
-        cancelledOrders
-            .add(OrderModel.fromJson(value[i].data() as Map<String, dynamic>));
+  List<OrderModel> getCompletedOrder() {
+    List<OrderModel> completedOrders = [];
+    for (int i = 0; i < _allOrders.value.length; i++) {
+      if (_allOrders.value[i].status == 'Completed') {
+        completedOrders.add(_allOrders.value[i]);
       }
     }
+    return completedOrders;
+  }
+
+  List<OrderModel> getCancelledOrder() {
+    List<OrderModel> cancelledOrders = [];
+    for (int i = 0; i < _allOrders.value.length; i++) {
+      if (_allOrders.value[i].status == 'Cancelled') {
+        cancelledOrders.add(_allOrders.value[i]);
+      }
+    }
+    return cancelledOrders;
   }
 
   String getNewPrice(int price) {
@@ -76,10 +99,18 @@ class OrderController extends GetxController
 
   setStateShipDelivery(String id) async {
     if (FirebaseAuth.instance.currentUser != null) {
-      await FireBaseUsers()
+      await FirebaseApi()
           .orderCollection(FirebaseAuth.instance.currentUser!.uid)
           .doc(id)
-          .update({'status': 'completed'});
+          .update({'status': 'Completed'});
     }
+  }
+
+  int getprice(List<String> price, List<int> quantity) {
+    var totalPrice = 0;
+    for (int i = 0; i < price.length; i++) {
+      totalPrice = totalPrice + int.parse(price[i]) * quantity[i];
+    }
+    return totalPrice;
   }
 }

@@ -5,12 +5,16 @@ import 'package:new_ap/model/kitchen_model.dart';
 import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
 import 'package:new_ap/screen/Home_screen/widgets/cart_widget/item_cart.dart';
 
+import '../../../../config/app_dimens.dart';
+
+// ignore: must_be_immutable
 class ListCart extends StatelessWidget {
   ListCart(this.allKitchen, this.allCart, this.kitchen, {super.key});
   final List<KitchenModel> allKitchen;
   final List<CartModel> allCart;
   final List<String> kitchen;
   CartController controller = Get.find<CartController>();
+
   @override
   Widget build(BuildContext context) {
     final height =
@@ -27,48 +31,49 @@ class ListCart extends StatelessWidget {
               ],
             ),
           )
-        : ListView.builder(
-            itemBuilder: (context, index1) {
-              String name = '';
-              for (int i = 0; i < allKitchen.length; i++) {
-                if (allKitchen[i].id.trim() == kitchen[index1]) {
-                  name = allKitchen[i].name;
+        : SizedBox(
+            height: allCart.length * 120 + kitchen.length * 100,
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index1) {
+                String name = '';
+                for (int i = 0; i < allKitchen.length; i++) {
+                  if (allKitchen[i].id.trim() == kitchen[index1].trim()) {
+                    name = allKitchen[i].name;
+                  }
                 }
-              }
-              List<CartModel> cartOfKitchen = [];
+                List<CartModel> cartOfKitchen = [];
+                for (int i = 0; i < allCart.length; i++) {
+                  if (allCart[i].kitchenId.trim() == kitchen[index1].trim()) {
+                    cartOfKitchen.add(
+                      allCart[i],
+                    );
+                  }
+                }
 
-              for (int i = 0; i < allCart.length; i++) {
-                if (allCart[i].kitchenId.trim() == kitchen[index1]) {
-                  cartOfKitchen.add(
-                    CartModel(
-                        id: allCart[i].id,
-                        name: allCart[i].name,
-                        price: allCart[i].price,
-                        quantity: allCart[i].quantity,
-                        url: allCart[i].url,
-                        kitchenId: allCart[i].kitchenId,
-                        productId: allCart[i].productId),
-                  );
-                }
-              }
-              return Obx(() => Padding(
-                    key: ValueKey(kitchen[index1]),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Card(
-                      color: Colors.grey.shade100,
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 8, right: 10, left: 10),
-                                child: SizedBox(
-                                    height: 0.05 * width,
-                                    width: 0.05 * width,
+                return Obx(
+                  () => SizedBox(
+                    child: Padding(
+                      key: ValueKey(kitchen[index1]),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppDimens.dimens_10),
+                      child: Card(
+                        color: Colors.grey.shade100,
+                        child: Column(
+                          children: <Widget>[
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: AppDimens.dimens_8,
+                                      right: AppDimens.dimens_10,
+                                      left: AppDimens.dimens_10),
+                                  child: SizedBox(
+                                    height: AppDimens.dimens_30,
+                                    width: AppDimens.dimens_30,
                                     child: Transform.scale(
-                                      scale: 1.3,
+                                      scale: 1.5,
                                       child: Checkbox(
                                           value: controller.selectIndex.value ==
                                                   index1 &&
@@ -82,8 +87,6 @@ class ListCart extends StatelessWidget {
                                               controller.getCount();
                                               controller.getApplyPromoCode();
                                               controller.getApplyShipping();
-                                              print(
-                                                  controller.selectIndex.value);
                                             } else {
                                               controller.selectIndex.value =
                                                   index1;
@@ -95,11 +98,14 @@ class ListCart extends StatelessWidget {
                                                         id: cartOfKitchen[i].id,
                                                         name: cartOfKitchen[i]
                                                             .name,
+                                                        kitchenName:
+                                                            cartOfKitchen[i]
+                                                                .kitchenName,
                                                         price: cartOfKitchen[i]
                                                             .price,
-                                                        quantity:
-                                                            cartOfKitchen[i]
-                                                                .quantity,
+                                                        quantity: cartOfKitchen[
+                                                                i]
+                                                            .quantity,
                                                         url: cartOfKitchen[i]
                                                             .url,
                                                         kitchenId:
@@ -114,56 +120,64 @@ class ListCart extends StatelessWidget {
                                               }
                                             }
                                           }),
-                                    )),
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 8, right: 10, left: 10),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        Text(
-                                          name,
-                                          style: const TextStyle(
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_forward_ios,
-                                          color: Theme.of(context).primaryColor,
-                                        )
-                                      ]),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const Divider(),
-                          SizedBox(
-                              width: double.infinity,
-                              height: height * 0.15 * cartOfKitchen.length,
-                              child: ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  return ItemCart(
-                                    cartOfKitchen,
-                                    index1,
-                                    cartOfKitchen[index],
-                                    height,
-                                    index,
-                                    width,
-                                  );
-                                },
-                                itemCount: cartOfKitchen.length,
-                              ))
-                        ],
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: AppDimens.dimens_8,
+                                        right: AppDimens.dimens_10,
+                                        left: AppDimens.dimens_10),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text(
+                                            name,
+                                            style: const TextStyle(
+                                                fontSize: AppDimens.dimens_25,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                          )
+                                        ]),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+                            SizedBox(
+                                width: double.infinity,
+                                height:
+                                    cartOfKitchen.length * AppDimens.dimens_130,
+                                child: ListView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    return ItemCart(
+                                      cartOfKitchen,
+                                      index1,
+                                      cartOfKitchen[index],
+                                      height,
+                                      index,
+                                      width,
+                                    );
+                                  },
+                                  itemCount: cartOfKitchen.length,
+                                ))
+                          ],
+                        ),
                       ),
                     ),
-                  ));
-            },
-            itemCount: kitchen.length,
+                  ),
+                );
+              },
+              itemCount: kitchen.length,
+            ),
           );
   }
 }

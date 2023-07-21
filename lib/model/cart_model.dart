@@ -4,6 +4,7 @@ class CartModel {
   late String price;
   late String name;
   late String url;
+  late String kitchenName;
   late String kitchenId;
   late String productId;
   CartModel(
@@ -11,6 +12,7 @@ class CartModel {
       required this.name,
       required this.price,
       required this.quantity,
+      required this.kitchenName,
       required this.url,
       required this.kitchenId,
       required this.productId});
@@ -22,5 +24,18 @@ class CartModel {
     url = map['url'];
     kitchenId = map['kitchenId'];
     productId = map['productId'];
+    kitchenName = map['kitchenName'];
+  }
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['quantity'] = quantity;
+    data['price'] = price;
+    data['name'] = name;
+    data['url'] = url;
+    data['kitchenId'] = kitchenId;
+    data['productId'] = productId;
+    data['kitchenName'] = kitchenName;
+    return data;
   }
 }

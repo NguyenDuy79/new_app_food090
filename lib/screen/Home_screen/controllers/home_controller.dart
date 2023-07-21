@@ -1,35 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:new_ap/screen/Home_screen/controllers/Main_controller.dart';
+import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 
-import 'package:new_ap/screen/Home_screen/View/main_screen.dart';
-import 'package:new_ap/screen/Home_screen/View/message_screen.dart';
-import 'package:new_ap/screen/Home_screen/View/order_screen.dart';
-import 'package:new_ap/screen/Home_screen/View/profile_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/tabs/main_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/tabs/message_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/tabs/order_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/tabs/profile_screen.dart';
 
 class HomeController extends GetxController {
   double height = AppBar().preferredSize.height;
   MainController controller = Get.put(MainController());
-  final List<Map<String, Widget>> _page = [
-    {'screen': MainScreen()},
-    {
-      'screen': OrderScreen(),
-    },
-    {
-      'screen': const MessageScreen(),
-    },
-    {
-      'screen': const ProfileScreen(),
-    }
+  final List<Widget> _page = [
+    MainScreen(),
+    OrderScreen(),
+    MessageScreen(),
+    const ProfileScreen(),
   ];
 
-  List<Map<String, Widget>> get page => _page;
+  List<Widget> get page => _page;
 
-  RxInt selectedPage = 0.obs;
+  final RxInt _selectedPage = 0.obs;
+  int get selectedPage => _selectedPage.value;
 
-  static get value => null;
-  void selectPage(int index) {
-    selectedPage.value = index;
-    update();
+  void setStateSelectedValue(int page) {
+    _selectedPage.value = page;
+  }
+
+  Color getColor(int page) {
+    if (_selectedPage.value == page) {
+      return ColorConstants.themeColor;
+    } else {
+      return ColorConstants.colorBlack;
+    }
   }
 }

@@ -3,7 +3,7 @@ description: A new Flutter project.
 publish_to: 'none' 
 version: 1.0.0+1
 environment:
-  sdk: '>=2.19.3 <3.0.0'
+  sdk: '>=2.19.5 <3.0.0'
 
 dependencies:
   flutter:
@@ -24,6 +24,13 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   sliver_tools: ^0.2.10
   shared_preferences: ^2.0.20
+  path_provider: ^2.0.14 
+  path: ^1.8.2
+  intl: ^0.18.1
+  
+  flutter_sound: ^9.2.13
+  permission_handler: ^10.4.3
+  audioplayers: ^4.1.0
   
 dev_dependencies:
   flutter_test:
@@ -37,11 +44,41 @@ flutter:
   
   assets:
     - assets/image/image_food.png
-    - assets/image/13.png
+    - assets/image/login.png
     - assets/image/sign_up.png
     - assets/image/chef.png
     - assets/image/user.png
     - assets/image/driver.png
     - assets/image/promocode.png
     - assets/image/freeship.png
-  
+    - assets/image/bun.jpg
+    - assets/image/asia.jpg
+    - assets/image/bread.jpg
+    - assets/image/breakfast.jpg
+    - assets/image/exotic.jpg
+    - assets/image/meals.jpg
+    - assets/image/pho.jpg
+    - assets/image/rice.jpg
+    - assets/image/seafood.jpg
+    - assets/image/xoi.jpg
+    - assets/image/mimi1.gif
+    - assets/image/mimi2.gif
+    - assets/image/mimi3.gif
+    - assets/image/mimi4.gif
+    - assets/image/mimi5.gif
+    - assets/image/mimi6.gif
+    - assets/image/mimi7.gif
+    - assets/image/mimi8.gif
+    - assets/image/mimi9.gif
+    - assets/image/like.png
+    - assets/image/fb.png
+    - assets/image/gg.png
+    - assets/image/empty.png
+    - assets/image/facebook.png
+  fonts:
+    - family: RobotoCondensed
+      fonts:
+        - asset: assets/fonts/RobotoCondensed-Regular.ttf
+        - asset: assets/fonts/RobotoCondensed-Light.ttf
+        - asset: assets/fonts/RobotoCondensed-Bold.ttf
+        

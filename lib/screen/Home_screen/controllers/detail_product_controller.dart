@@ -1,23 +1,63 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:new_ap/database/Firebase_users.dart';
+import 'package:new_ap/model/cart_model.dart';
+
+import '../../../config/app_another.dart';
+import '../../../config/firebase_api.dart';
 
 class DetailProductController extends GetxController {
   ValueNotifier<bool> loading = ValueNotifier(false);
-  RxBool _loadingData = false.obs;
+  final RxBool _loadingData = false.obs;
   RxBool get loadingData => _loadingData;
+  final RxInt _count = 1.obs;
+  int get count => _count.value;
+  final Rx<List<CartModel>> _cart = Rx<List<CartModel>>([]);
 
-  Future<void> addItem(BuildContext context, String productId, String price,
-      String name, String url, String kitchenId, int quantity) async {
+  List<CartModel> get cart => _cart.value;
+  int selectIndex = -1;
+  @override
+  void onInit() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      _cart.bindStream(
+          AppAnother().cartStream(FirebaseAuth.instance.currentUser!.uid));
+    }
+    super.onInit();
+  }
+
+  increase() {
+    _count.value += 1;
+  }
+
+  reduce() {
+    _count.value -= 1;
+  }
+
+  Future<void> addItem(
+      BuildContext context,
+      String kitchenName,
+      String productId,
+      String price,
+      String name,
+      String url,
+      String kitchenId,
+      int quantity) async {
     _loadingData.value = true;
     final dateTime = DateTime.now();
+    CartModel cart = CartModel(
+        id: dateTime.toString(),
+        name: name,
+        price: price,
+        quantity: quantity,
+        kitchenName: kitchenName,
+        url: url,
+        kitchenId: kitchenId,
+        productId: productId);
     List<QueryDocumentSnapshot<Object?>> listData = [];
     if (FirebaseAuth.instance.currentUser != null) {
-      FireBaseUsers()
+      FirebaseApi()
           .getCartFirestore(FirebaseAuth.instance.currentUser!.uid)
           .then((value) async {
         if (value.isEmpty) {
@@ -36,13 +76,13 @@ class DetailProductController extends GetxController {
           } else {
             try {
               _loadingData.value = true;
-              await FireBaseUsers()
+              await FirebaseApi()
                   .cartCollection(FirebaseAuth.instance.currentUser!.uid)
                   .doc((value[result].data() as Map<String, dynamic>)['id'])
                   .update({
                 'quantity':
                     (value[result].data() as Map<String, dynamic>)['quantity'] +
-                        quantity
+                        cart.quantity
               }).then((value) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 return ScaffoldMessenger.of(context).showSnackBar(
@@ -59,9 +99,9 @@ class DetailProductController extends GetxController {
                         actions: <Widget>[
                           TextButton(
                               onPressed: () {
-                                Navigator.of(ctx).pop();
+                                Get.back();
                               },
-                              child: Text('Ok'))
+                              child: const Text('Ok'))
                         ],
                       ));
             }
@@ -69,18 +109,11 @@ class DetailProductController extends GetxController {
         }
         if (loading.value == true) {
           try {
-            await FireBaseUsers()
+            await FirebaseApi()
                 .cartCollection(FirebaseAuth.instance.currentUser!.uid)
                 .doc(dateTime.toString())
-                .set({
-              'id': dateTime.toString(),
-              'quantity': quantity,
-              'url': url,
-              'productId': productId,
-              'price': price,
-              'name': name,
-              'kitchenId': kitchenId
-            }).then((value) {
+                .set(cart.toJson())
+                .then((value) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               return ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                   content: Text('Thêm vào giỏ hàng thành công')));

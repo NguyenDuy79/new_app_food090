@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:new_ap/screen/Home_screen/controllers/Main_controller.dart';
+import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/config/app_font.dart';
+import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/model/kitchen_model.dart';
-import 'package:new_ap/screen/Home_screen/View/kitchen_menu.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/kitchen_menu.dart';
+
+import '../../../../config/app_dimens.dart';
 
 class GirdKitchen extends GetView<MainController> {
   const GirdKitchen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final heightImage = MediaQuery.of(context).size.width - 20 * 2;
+    final heightImage =
+        MediaQuery.of(context).size.width - AppDimens.dimens_20 * 2;
 
-    return GetBuilder<MainController>(
+    return GetX<MainController>(
       init: Get.find<MainController>(),
       builder: (controller) => SizedBox(
-        height:
-            heightImage / 2 * (3.05 / 2) * (controller.kitchenModel.length / 2),
+        height: (heightImage / 2) *
+            (3.05 / 2) *
+            (controller.getLenght(controller.kitchenModel.length) / 2),
+        width: double.infinity,
         child: GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: heightImage / 2,
-              crossAxisSpacing: 20,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppDimens.dimens_20,
               childAspectRatio: 2 / 3.05),
-          itemBuilder: (ctx, i) => _kitChenItem(
+          itemBuilder: (ctx, i) => kitChenItem(
               controller,
               context,
               heightImage,
@@ -40,7 +47,7 @@ class GirdKitchen extends GetView<MainController> {
   }
 }
 
-Widget _kitChenItem(
+Widget kitChenItem(
     MainController controller,
     BuildContext context,
     double height,
@@ -54,72 +61,79 @@ Widget _kitChenItem(
   final intoductItem = intoduct.split(',');
   return GestureDetector(
     onTap: () {
-      Get.to(() => KitchenMenu(kitchen))!.then(
-        (value) {
-          controller.reset();
-          controller.getCartItemCount();
-        },
-      );
+      Get.to(() => KitchenMenu(kitchen));
     },
     child: Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.dimens_15)),
       child: Column(
         children: <Widget>[
           ClipRRect(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(AppDimens.dimens_15),
               child: SizedBox(
-                height: height / 2 * 0.8,
+                height: AppDimens.dimens_150,
                 child: Image.network(
                   url,
                   fit: BoxFit.cover,
                 ),
               )),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.dimens_5, vertical: AppDimens.dimens_8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 SizedBox(
-                  height: 60,
-                  width: 60,
+                  height: AppDimens.dimens_60,
+                  width: AppDimens.dimens_60,
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(urlchef),
                   ),
                 ),
                 const SizedBox(
-                  width: 5,
+                  width: AppDimens.dimens_5,
                 ),
                 Column(
                   children: <Widget>[
-                    Text(
-                      name,
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.bold),
+                    FittedBox(
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                            fontSize: AppDimens.dimens_17,
+                            fontWeight: AppFont.semiBold),
+                      ),
                     ),
-                    Row(
-                      children: <Widget>[
-                        Icon(Icons.motorcycle_outlined,
-                            color: Theme.of(context).primaryColor),
-                        Text(
-                          ship,
-                          style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 12),
-                        )
-                      ],
+                    FittedBox(
+                      child: Row(
+                        children: <Widget>[
+                          const Icon(Icons.motorcycle_outlined,
+                              color: ColorConstants.themeColor),
+                          Text(
+                            ship,
+                            style: const TextStyle(
+                                color: ColorConstants.themeColor,
+                                fontSize: AppDimens.dimens_12,
+                                fontWeight: AppFont.medium),
+                          )
+                        ],
+                      ),
                     ),
-                    Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.timer,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        Text(
-                          time,
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 12),
-                        )
-                      ],
+                    FittedBox(
+                      child: Row(
+                        children: <Widget>[
+                          const Icon(
+                            Icons.timer,
+                            color: ColorConstants.themeColor,
+                          ),
+                          Text(
+                            time,
+                            style: const TextStyle(
+                                color: ColorConstants.colorGrey4,
+                                fontSize: AppDimens.dimens_12,
+                                fontWeight: AppFont.semiBold),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 )
@@ -128,24 +142,28 @@ Widget _kitChenItem(
           ),
           FittedBox(
             child: Padding(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.all(AppDimens.dimens_5),
               child: Row(
                 children: <Widget>[
                   ...intoductItem
                       .map(
                         (e) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimens.dimens_4),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            height: 17,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimens.dimens_2),
+                            height: AppDimens.dimens_17,
                             decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(5)),
+                                color: ColorConstants.colorGrey2,
+                                borderRadius:
+                                    BorderRadius.circular(AppDimens.dimens_5)),
                             width: (height / 2 - 5 * 2 - 16) / 3,
                             child: FittedBox(
                               child: Text(
                                 e,
-                                style: const TextStyle(fontSize: 15),
+                                style: const TextStyle(
+                                    fontSize: AppDimens.dimens_15),
                               ),
                             ),
                           ),

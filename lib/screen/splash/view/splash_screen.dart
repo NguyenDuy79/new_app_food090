@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/screen/splash/controller/splash_controller.dart';
 
+import '../../../config/app_dimens.dart';
+
 class SplashScreen extends StatelessWidget {
   SplashScreen({super.key});
   final controller = Get.find<SplashController>();
   final appBar = AppBar(
     backgroundColor: Colors.white,
-    elevation: 0,
+    elevation: AppDimens.dimens_0,
   );
   @override
   Widget build(BuildContext context) {
