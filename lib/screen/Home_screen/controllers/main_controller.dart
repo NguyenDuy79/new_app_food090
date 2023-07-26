@@ -131,8 +131,9 @@ class MainController extends GetxController {
   }
 
   // SearchScreen
-  List<String> _kitchenName = [];
-  List<String> get kitchenName => _kitchenName;
+  //final Rx<List<String>> _kitchenName = Rx<List<String>>([]);
+  Rx<List<String>> _kitchenName = Rx<List<String>>([]);
+  List<String> get kitchenName => _kitchenName.value;
   final RxBool _isCheck = false.obs;
   bool get isCheck => _isCheck.value;
   final Rx<List<SearchModel>> _historySearch = Rx<List<SearchModel>>([]);
@@ -144,7 +145,7 @@ class MainController extends GetxController {
   bool get isMain => _isMain.value;
   final RxBool _reload = false.obs;
   bool get reload => _reload.value;
-
+  RxInt itemCount = 0.obs;
   getTrueIsMain() {
     _isMain.value = true;
   }
@@ -206,7 +207,7 @@ class MainController extends GetxController {
   }
 
   changeStatusEmpty() {
-    if (textEditing.text == '') {
+    if (textEditing.text.trim() == '') {
       _isCheck.value = false;
     } else {
       _isCheck.value = true;
@@ -226,11 +227,12 @@ class MainController extends GetxController {
   }
 
   getSuggest(String value) {
-    _kitchenName = [];
+    _kitchenName = Rx<List<String>>([]);
     for (var item in kitchenModel) {
       if (item.name.toLowerCase().contains(value.toLowerCase())) {
-        return _kitchenName.add(item.name);
+        _kitchenName.value.add(item.name);
       }
     }
+    itemCount = _kitchenName.value.length.obs;
   }
 }

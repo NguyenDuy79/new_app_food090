@@ -7,9 +7,12 @@ import 'package:new_ap/model/chat_model.dart';
 import '../controller/message_partner_controller.dart';
 
 class ImageViewPartnerScreen extends StatelessWidget {
-  ImageViewPartnerScreen(this.id, this.type, {super.key});
+  ImageViewPartnerScreen(this.id, this.type, this.notSeen, this.insideChatGroup,
+      {super.key});
   final String id;
   final int type;
+  final int notSeen;
+  final bool insideChatGroup;
   final MessagePartnerController controller =
       Get.find<MessagePartnerController>();
   @override
@@ -49,14 +52,17 @@ class ImageViewPartnerScreen extends StatelessWidget {
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
                         onPressed: () {
-                          controller.submitData(id, context, type);
+                          controller.submitData(
+                              id, context, type, notSeen, insideChatGroup);
                           if (controller
                               .messageImageController.text.isNotEmpty) {
                             controller.submitNewMessage(
                                 id,
                                 context,
                                 controller.messageImageController.text,
-                                TypeMessage.text);
+                                TypeMessage.text,
+                                notSeen,
+                                insideChatGroup);
                           }
 
                           Get.back();
@@ -89,7 +95,9 @@ class ImageViewPartnerScreen extends StatelessWidget {
                           id,
                           context,
                           controller.messageImageController.text,
-                          TypeMessage.text);
+                          TypeMessage.text,
+                          notSeen,
+                          insideChatGroup);
                     }
                   },
                 ),

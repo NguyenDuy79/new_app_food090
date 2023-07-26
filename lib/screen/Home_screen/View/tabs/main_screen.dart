@@ -1,11 +1,13 @@
 import 'dart:developer';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/app_font.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/categories_screen.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/kitchen_screen.dart';
-import 'package:new_ap/screen/Home_screen/View/pages/search_screen.dart';
+
+import 'package:new_ap/screen/Search_Screen/home/search_kitchen_screen.dart';
 import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/cart_screen.dart';
 import 'package:new_ap/screen/Home_screen/widgets/cart_widget/badged.dart';
@@ -46,7 +48,7 @@ class MainScreen extends StatelessWidget {
                             backgroundImage:
                                 NetworkImage(controller.user.image),
                           ),
-                    backgroundColor: ColorConstants.colorWhite,
+                    backgroundColor: ColorConstants.colorGrey0,
                     actions: [
                       IconButton(
                           onPressed: () {},
@@ -107,7 +109,7 @@ class MainScreen extends StatelessWidget {
                             ],
                           ),
                         )),
-                    backgroundColor: ColorConstants.colorWhite,
+                    backgroundColor: ColorConstants.colorGrey0,
                     actions: [
                       IconButton(
                           onPressed: () {},
@@ -136,7 +138,7 @@ class MainScreen extends StatelessWidget {
         child: Column(
           children: <Widget>[
             Container(
-              height: AppDimens.dimens_60,
+              height: AppBar().preferredSize.height,
               padding: const EdgeInsets.only(
                   top: AppDimens.dimens_20,
                   left: AppDimens.dimens_30,
@@ -148,7 +150,7 @@ class MainScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15))),
                   onPressed: () {
-                    Get.to(() => SearchScreen());
+                    Get.to(() => SearchKitchenScreen());
                   },
                   child: SizedBox(
                     height: 40,
@@ -194,7 +196,9 @@ class MainScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold),
                   ),
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.to(() => CategoriesScreen());
+                      },
                       child: const Text(
                         'See all',
                         style: TextStyle(color: ColorConstants.themeColor),
@@ -220,7 +224,10 @@ class MainScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold),
                   ),
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        controller.getListQuery('');
+                        Get.to(() => KitchenScreen());
+                      },
                       child: const Text(
                         'See all',
                         style: TextStyle(color: ColorConstants.themeColor),

@@ -24,12 +24,6 @@ class OrderNowController extends GetxController {
   List<OrderModel> get orderActive => _orderActive.value;
   RxInt status = 0.obs;
 
-  List<String> statusDelivery = [
-    AppString.statusDelivery1,
-    AppString.statusDelivery2,
-    AppString.statusDelivery3,
-    AppString.statusDelivery4
-  ];
   String url = '';
   File? _storeImage;
   File? get storeImage => _storeImage;
@@ -99,11 +93,14 @@ class OrderNowController extends GetxController {
                 query.docs[i].data() as Map<String, dynamic>));
           }
           if (listOrderStream.isNotEmpty) {
-            if (listOrderStream[0].statusDelivery == statusDelivery[0]) {
+            if (listOrderStream[0].statusDelivery ==
+                AppString.statusDelivery[0]) {
               status.value = 1;
-            } else if (listOrderStream[0].statusDelivery == statusDelivery[1]) {
+            } else if (listOrderStream[0].statusDelivery ==
+                AppString.statusDelivery[1]) {
               status.value = 2;
-            } else if (listOrderStream[0].statusDelivery == statusDelivery[2]) {
+            } else if (listOrderStream[0].statusDelivery ==
+                AppString.statusDelivery[2]) {
               status.value = 3;
             } else {
               status.value = 4;
@@ -111,6 +108,7 @@ class OrderNowController extends GetxController {
           }
         }
       }
+
       return listOrderStream;
     });
   }
@@ -179,20 +177,25 @@ class OrderNowController extends GetxController {
             quantity: orderChoose.quantity,
             shippingCode: orderChoose.shippingCode,
             status: orderChoose.status,
-            statusDelivery: statusDelivery[0],
+            statusDelivery: AppString.statusDelivery[0],
             url: orderChoose.url);
         ChatModel chatUser = ChatModel(
-            content: 'Tôi đã nhận đơn hàng',
-            id: timeStamp,
-            type: TypeMessage.text,
-            isMe: false,
-            seen: false);
+          content: 'Tôi đã nhận đơn hàng',
+          timestamp: timeStamp,
+          id: dateTime.toString(),
+          type: TypeMessage.text,
+          isMe: false,
+          isSeen: true,
+          mySeen: false,
+        );
         ChatModel chatPartner = ChatModel(
             content: 'Tôi đã nhận đơn hàng',
-            id: timeStamp,
+            timestamp: timeStamp,
+            id: dateTime.toString(),
             type: TypeMessage.text,
             isMe: true,
-            seen: true);
+            mySeen: true,
+            isSeen: false);
         Map<String, List> getQuantity = {'quantity': orderChoose.quantity};
         Map<String, List> getPrice = {'productPrice': orderChoose.productPrice};
         await FirebaseApi().getUser(orderChoose.uid).then((value) {
@@ -230,12 +233,17 @@ class OrderNowController extends GetxController {
               .set({
             'id': orderChoose.uid,
             'userImage': _user.image,
-            'userName': _user.userName
+            'userName': _user.userName,
+            'timestamp': timeStamp,
+            'is not seen message': 1,
+            'my not seen message': 0,
+            'inside chat group': false,
+            'online': true
           }).then((value) async {
             await FirebaseApi()
                 .chatCollectionPartner(
                     AppAnother.userAuth!.uid, orderChoose.uid)
-                .doc(timeStamp.toString())
+                .doc(dateTime.toString())
                 .set(chatPartner.toJson());
           });
         }).catchError((e) => throw e);
@@ -243,7 +251,7 @@ class OrderNowController extends GetxController {
             .orderCollection(orderChoose.uid)
             .doc(orderChoose.id)
             .update({
-          'status delivery': statusDelivery[0],
+          'status delivery': AppString.statusDelivery[0],
           'timeOne': dateTime.toString()
         }).then((value) async {
           await FirebaseApi()
@@ -255,6 +263,11 @@ class OrderNowController extends GetxController {
             'id': FirebaseAuth.instance.currentUser!.uid,
             'userImage': _userPartner.image,
             'userName': _userPartner.userName,
+            'timestamp': timeStamp,
+            'my not seen message': 1,
+            'is not seen message': 0,
+            'inside chat group': false,
+            'online': false,
           });
         }).then((value) async {
           await FirebaseApi()
@@ -290,14 +303,6 @@ class OrderNowController extends GetxController {
     }
   }
 
-  Color getColors(int count, int value, BuildContext ctx) {
-    if (count >= value) {
-      return Theme.of(ctx).primaryColor;
-    } else {
-      return Colors.grey;
-    }
-  }
-
   String getText() {
     if (status.value == 1) {
       return 'Order at the shop';
@@ -312,77 +317,9 @@ class OrderNowController extends GetxController {
     }
   }
 
-  Widget getWidget(
-      BuildContext context, int count, IconData icon, String time) {
-    return Container(
-      height: AppDimens.dimens_130,
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.dimens_20,
-      ),
-      child: Row(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Icon(
-                icon,
-                color: getColors(status.value, count, context),
-              ),
-              Container(
-                height: AppDimens.dimens_100,
-                width: AppDimens.dimens_5,
-                decoration: BoxDecoration(
-                    color: getColors(status.value, count, context)),
-              )
-            ],
-          ),
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.only(top: AppDimens.dimens_10),
-            child: Column(
-              children: <Widget>[
-                FittedBox(
-                  child: Text(
-                    'Tình trạng: ${statusDelivery[count - 1]}',
-                    style: TextStyle(
-                        fontSize: AppDimens.dimens_20,
-                        fontWeight: FontWeight.bold,
-                        color:
-                            status.value >= count ? Colors.black : Colors.grey),
-                  ),
-                ),
-                status.value >= count
-                    ? Text(
-                        '${time.split(':')[0]}:${time.split(':')[1]}',
-                        style: const TextStyle(color: Colors.black),
-                      )
-                    : const Text(''),
-                if (url != '' && count == 2)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppDimens.dimens_10),
-                    height: AppDimens.dimens_80,
-                    width: AppDimens.dimens_50,
-                    child: Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                const Expanded(child: SizedBox()),
-                Divider(
-                    height: AppDimens.dimens_0,
-                    thickness: AppDimens.dimens_2,
-                    color: getColors(status.value, count, context))
-              ],
-            ),
-          ))
-        ],
-      ),
-    );
-  }
-
   statusDeliveryMethod(BuildContext ctx) async {
     String dateTime = DateTime.now().toString();
+    Timestamp timestamp = Timestamp.now();
     if (status.value == 1) {
       Get.to(() {
         return CameraPicker();
@@ -409,14 +346,16 @@ class OrderNowController extends GetxController {
           .doc(_orderActive.value[0].id)
           .update({
         'status delivery': AppString.statusDelivery4,
-        'timeFour': dateTime
+        'timeFour': dateTime,
+        'timeStamp': timestamp
       }).then((value) async {
         await FirebaseApi()
             .orderCollection(_orderActive.value[0].uid)
             .doc(_orderActive.value[0].id)
             .update({
           'status delivery': AppString.statusDelivery4,
-          'timeFour': dateTime
+          'timeFour': dateTime,
+          'timeStamp': timestamp
         });
       });
     } else if (status.value == 4) {
@@ -443,7 +382,7 @@ class OrderNowController extends GetxController {
               quantity: _orderActive.value[0].quantity,
               shippingCode: _orderActive.value[0].shippingCode,
               status: 'Completed',
-              statusDelivery: statusDelivery[3],
+              statusDelivery: AppString.statusDelivery[3],
               url: _orderActive.value[0].url);
           Map<String, dynamic> getProductPrice = {
             'productPrice': _orderActive.value[0].productPrice
@@ -531,7 +470,6 @@ class OrderNowController extends GetxController {
   }
 
   getImageBill(BuildContext ctx) async {
-    Timestamp timestamp = Timestamp.now();
     String dateTime = DateTime.now().toString();
     if (FirebaseAuth.instance.currentUser != null) {
       if (_storeImage != null) {
@@ -540,41 +478,20 @@ class OrderNowController extends GetxController {
               '${FirebaseAuth.instance.currentUser!.uid}${DateTime.now()}.png');
           await ref.putFile(storeImage!);
           String billImage = await ref.getDownloadURL();
-          ChatModel chatPartner = ChatModel(
-              content: billImage,
-              id: timestamp,
-              type: TypeMessage.image,
-              isMe: true,
-              seen: true);
-          ChatModel chatUser = ChatModel(
-              content: billImage,
-              id: timestamp,
-              type: TypeMessage.image,
-              isMe: false,
-              seen: false);
+
           await FirebaseApi()
               .orderPartner(FirebaseAuth.instance.currentUser!.uid)
               .doc(_orderActive.value[0].id)
               .update({
-            'billImage': url,
+            'billImage': billImage,
             'status delivery': 'Đang chuẩn bị',
             'timeTwo': dateTime
           }).then((value) async {
             await FirebaseApi()
-                .chatCollectionPartner(FirebaseAuth.instance.currentUser!.uid,
-                    _orderActive.value[0].uid)
-                .doc(dateTime)
-                .set(chatPartner.toJson());
-            await FirebaseApi()
-                .chatCollection(_orderActive.value[0].uid,
-                    FirebaseAuth.instance.currentUser!.uid)
-                .doc(dateTime)
-                .set(chatUser.toJson());
-            await FirebaseApi()
                 .orderCollection(_orderActive.value[0].uid)
                 .doc(_orderActive.value[0].id)
                 .update({
-              'billImage': url,
+              'billImage': billImage,
               'status delivery': 'Đang chuẩn bị',
               'timeTwo': dateTime
             }).then((value) {

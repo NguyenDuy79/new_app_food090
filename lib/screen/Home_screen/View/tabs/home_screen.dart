@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
               onTap: (value) {
                 controller.setStateSelectedValue(value);
               },
-              backgroundColor: ColorConstants.colorGrey2,
+              backgroundColor: ColorConstants.colorWhite,
               unselectedItemColor: ColorConstants.colorBlack,
               selectedItemColor: ColorConstants.themeColor,
               currentIndex: controller.selectedPage,

@@ -5,7 +5,6 @@ import 'package:new_ap/config/app_font.dart';
 import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/model/kitchen_model.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/kitchen_menu.dart';
-
 import '../../../../config/app_dimens.dart';
 
 class GirdKitchen extends GetView<MainController> {
@@ -13,13 +12,12 @@ class GirdKitchen extends GetView<MainController> {
 
   @override
   Widget build(BuildContext context) {
-    final heightImage =
-        MediaQuery.of(context).size.width - AppDimens.dimens_20 * 2;
+    final width = MediaQuery.of(context).size.width - AppDimens.dimens_20 * 2;
 
     return GetX<MainController>(
       init: Get.find<MainController>(),
       builder: (controller) => SizedBox(
-        height: (heightImage / 2) *
+        height: (width / 2) *
             (3.05 / 2) *
             (controller.getLenght(controller.kitchenModel.length) / 2),
         width: double.infinity,
@@ -32,7 +30,7 @@ class GirdKitchen extends GetView<MainController> {
           itemBuilder: (ctx, i) => kitChenItem(
               controller,
               context,
-              heightImage,
+              width,
               controller.kitchenModel[i],
               controller.kitchenModel[i].imageUrl,
               controller.kitchenModel[i].imagechefUrl,
@@ -50,7 +48,7 @@ class GirdKitchen extends GetView<MainController> {
 Widget kitChenItem(
     MainController controller,
     BuildContext context,
-    double height,
+    double width,
     KitchenModel kitchen,
     String url,
     String urlchef,
@@ -71,7 +69,7 @@ Widget kitChenItem(
           ClipRRect(
               borderRadius: BorderRadius.circular(AppDimens.dimens_15),
               child: SizedBox(
-                height: AppDimens.dimens_150,
+                height: width * 0.42,
                 child: Image.network(
                   url,
                   fit: BoxFit.cover,
@@ -84,8 +82,8 @@ Widget kitChenItem(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 SizedBox(
-                  height: AppDimens.dimens_60,
-                  width: AppDimens.dimens_60,
+                  height: width * 0.175,
+                  width: width * 0.175,
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(urlchef),
                   ),
@@ -93,49 +91,51 @@ Widget kitChenItem(
                 const SizedBox(
                   width: AppDimens.dimens_5,
                 ),
-                Column(
-                  children: <Widget>[
-                    FittedBox(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                            fontSize: AppDimens.dimens_17,
-                            fontWeight: AppFont.semiBold),
+                Expanded(
+                  child: Column(
+                    children: <Widget>[
+                      FittedBox(
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                              fontSize: AppDimens.dimens_17,
+                              fontWeight: AppFont.semiBold),
+                        ),
                       ),
-                    ),
-                    FittedBox(
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(Icons.motorcycle_outlined,
-                              color: ColorConstants.themeColor),
-                          Text(
-                            ship,
-                            style: const TextStyle(
-                                color: ColorConstants.themeColor,
-                                fontSize: AppDimens.dimens_12,
-                                fontWeight: AppFont.medium),
-                          )
-                        ],
+                      FittedBox(
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(Icons.motorcycle_outlined,
+                                color: ColorConstants.themeColor),
+                            Text(
+                              ship,
+                              style: const TextStyle(
+                                  color: ColorConstants.themeColor,
+                                  fontSize: AppDimens.dimens_12,
+                                  fontWeight: AppFont.medium),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    FittedBox(
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(
-                            Icons.timer,
-                            color: ColorConstants.themeColor,
-                          ),
-                          Text(
-                            time,
-                            style: const TextStyle(
-                                color: ColorConstants.colorGrey4,
-                                fontSize: AppDimens.dimens_12,
-                                fontWeight: AppFont.semiBold),
-                          ),
-                        ],
+                      FittedBox(
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.timer,
+                              color: ColorConstants.themeColor,
+                            ),
+                            Text(
+                              time,
+                              style: const TextStyle(
+                                  color: ColorConstants.colorGrey4,
+                                  fontSize: AppDimens.dimens_12,
+                                  fontWeight: AppFont.semiBold),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               ],
             ),
@@ -158,7 +158,7 @@ Widget kitChenItem(
                                 color: ColorConstants.colorGrey2,
                                 borderRadius:
                                     BorderRadius.circular(AppDimens.dimens_5)),
-                            width: (height / 2 - 5 * 2 - 16) / 3,
+                            width: (width / 2 - 5 * 2 - 16) / 3,
                             child: FittedBox(
                               child: Text(
                                 e,

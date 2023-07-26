@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+
 import 'package:new_ap/config/app_dimens.dart';
 import 'package:new_ap/screen/Home_screen/widgets/chat_detail_widget/record_again.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -42,8 +43,7 @@ class MessageController extends GetxController
       Rx<List<ChatProfileModel>>([]);
   List<ChatProfileModel> get chatProfileUser => _chatProfileUser.value;
   Rx<List<ChatModel>> chatContent = Rx<List<ChatModel>>([]);
-  Rx<UserModel> user =
-      UserModel(id: '', email: '', image: '', mobile: '', userName: '').obs;
+
   final RxBool _checkEmty = false.obs;
   bool get checkEmty => _checkEmty.value;
   File? _storeImage;
@@ -61,6 +61,15 @@ class MessageController extends GetxController
   final messageController = TextEditingController();
   final _focusNode = FocusNode();
   FocusNode get focusNode => _focusNode;
+  Rx<ChatProfileModel> chatProfile = ChatProfileModel(
+          id: '',
+          insideChatGroup: false,
+          isNotSeenMessage: 0,
+          myNotSeenMessage: 0,
+          timestamp: Timestamp.now(),
+          image: '',
+          name: '')
+      .obs;
 
   final List<Tab> myTabs = const [
     Tab(
@@ -109,6 +118,8 @@ class MessageController extends GetxController
     if (FirebaseAuth.instance.currentUser != null) {
       _chatProfileUser
           .bindStream(getProfileChat(FirebaseAuth.instance.currentUser!.uid));
+      // _historySearch
+      //     .bindStream(getStreamSearchHistory(AppAnother.userAuth!.uid));
     }
     super.onInit();
   }
@@ -124,7 +135,7 @@ class MessageController extends GetxController
   Stream<List<ChatModel>> getChatContent(String uid, String id, int limit) {
     return FirebaseApi()
         .chatCollection(uid, id)
-        .orderBy('id', descending: true)
+        .orderBy('timestamp', descending: true)
         .limit(limit)
         .snapshots()
         .map((query) {
@@ -137,6 +148,18 @@ class MessageController extends GetxController
       }
 
       return listCartStream;
+    });
+  }
+
+  Stream<ChatProfileModel> getChatGroupProfile(String id) {
+    return FirebaseApi()
+        .chatProfileCollection(AppAnother.userAuth!.uid)
+        .doc(id)
+        .snapshots()
+        .map((event) {
+      ChatProfileModel value =
+          ChatProfileModel.fromJson(event.data() as Map<String, dynamic>);
+      return value;
     });
   }
 
@@ -165,17 +188,6 @@ class MessageController extends GetxController
     });
   }
 
-  Stream<QuerySnapshot>? getChatStream(String groupChatId, int limit) {
-    if (FirebaseAuth.instance.currentUser != null) {
-      return FirebaseApi()
-          .chatCollection(FirebaseAuth.instance.currentUser!.uid, groupChatId)
-          .orderBy('id', descending: true)
-          .limit(limit)
-          .snapshots();
-    }
-    return null;
-  }
-
   String getContentChatInChatScreen(
       int type, String content, String name, bool isMe) {
     if (type == TypeMessage.text) {
@@ -197,9 +209,11 @@ class MessageController extends GetxController
     }
   }
 
-  Future<void> submitNewMessage(
-      String id, BuildContext ctx, String content, int type) async {
-    Timestamp timeStamp = Timestamp.now();
+  Future<void> submitNewMessage(String id, BuildContext ctx, String content,
+      int type, int notSeen, bool insideChatGroup) async {
+    Timestamp timestamp = Timestamp.now();
+
+    String dateTime = DateTime.now().toString();
     if (FirebaseAuth.instance.currentUser != null) {
       try {
         if (type == TypeMessage.sticker) {
@@ -207,28 +221,66 @@ class MessageController extends GetxController
         }
         ChatModel chatUser = ChatModel(
             content: content,
-            id: timeStamp,
+            id: dateTime,
+            timestamp: timestamp,
             type: type,
             isMe: true,
-            seen: true);
+            isSeen: false,
+            mySeen: true);
         ChatModel chatPartner = ChatModel(
             content: content,
-            id: timeStamp,
+            id: dateTime,
+            timestamp: timestamp,
             type: type,
             isMe: false,
-            seen: false);
+            isSeen: true,
+            mySeen: false);
+        messageController.text = '';
         await FirebaseApi()
             .chatCollection(FirebaseAuth.instance.currentUser!.uid, id)
-            .doc(timeStamp.toString())
+            .doc(dateTime)
             .set(chatUser.toJson())
             .then((value) async {
-          FirebaseApi()
-              .chatCollectionPartner(id, FirebaseAuth.instance.currentUser!.uid)
-              .doc(timeStamp.toString())
-              .set(chatPartner.toJson());
-        }).then((value) {
+          await FirebaseApi()
+              .chatProfileCollection(AppAnother.userAuth!.uid)
+              .doc(id)
+              .update(
+                  {'timestamp': timestamp, 'is not seen message': notSeen + 1});
+        });
+        await FirebaseApi()
+            .chatCollectionPartner(id, FirebaseAuth.instance.currentUser!.uid)
+            .doc(dateTime)
+            .set(chatPartner.toJson())
+            .then((value) async {
+          await FirebaseApi()
+              .chatProfileCollectionPartner(id)
+              .doc(AppAnother.userAuth!.uid)
+              .update({
+            'timestamp': timestamp,
+            'my not seen message': notSeen + 1,
+          });
+
           _checkEmty.value = false;
         });
+        if (insideChatGroup == true) {
+          await FirebaseApi()
+              .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+              .doc(dateTime)
+              .update({'my seen': true});
+          await FirebaseApi()
+              .chatProfileCollectionPartner(id)
+              .doc(AppAnother.userAuth!.uid)
+              .update({'my not seen message': 0});
+          await FirebaseApi()
+              .chatCollection(AppAnother.userAuth!.uid, id)
+              .doc(dateTime)
+              .update({'is seen': true});
+
+          await FirebaseApi()
+              .chatProfileCollection(AppAnother.userAuth!.uid)
+              .doc(id)
+              .update({'is not seen message': 0});
+        }
       } on PlatformException catch (err) {
         var message = 'An error, try again';
         if (err.message != null) {
@@ -249,8 +301,28 @@ class MessageController extends GetxController
     }
   }
 
-  submitMultiImage(String id, BuildContext ctx) async {
+  Future<void> getChatDetailScreen(String id) async {
+    if (AppAnother.userAuth != null) {
+      await FirebaseApi()
+          .chatProfileCollectionPartner(id)
+          .doc(AppAnother.userAuth!.uid)
+          .update({'inside chat group': true});
+    }
+  }
+
+  Future<void> outChatDetailScreen(String id) async {
+    if (AppAnother.userAuth != null) {
+      await FirebaseApi()
+          .chatProfileCollectionPartner(id)
+          .doc(AppAnother.userAuth!.uid)
+          .update({'inside chat group': false});
+    }
+  }
+
+  submitMultiImage(
+      String id, BuildContext ctx, int notSeen, bool insideChatGroup) async {
     Timestamp timestamp = Timestamp.now();
+    String dateTime = DateTime.now().toString();
     if (AppAnother.userAuth != null) {
       if (imageFileList.isNotEmpty) {
         try {
@@ -271,31 +343,69 @@ class MessageController extends GetxController
             count++;
             log(count.toString());
           }
-          ChatModel chatPartner = ChatModel(
-              content: content,
-              id: timestamp,
-              type: TypeMessage.image,
-              isMe: false,
-              seen: false);
           ChatModel chatUser = ChatModel(
               content: content,
-              id: timestamp,
+              id: dateTime,
+              timestamp: timestamp,
               type: TypeMessage.image,
               isMe: true,
-              seen: true);
+              isSeen: false,
+              mySeen: true);
+          ChatModel chatPartner = ChatModel(
+              content: content,
+              id: dateTime,
+              timestamp: timestamp,
+              type: TypeMessage.image,
+              isMe: false,
+              isSeen: true,
+              mySeen: false);
           await FirebaseApi()
               .chatCollection(AppAnother.userAuth!.uid, id)
-              .doc(timestamp.toString())
+              .doc(dateTime)
               .set(chatUser.toJson())
-              .then((value) {
-            FirebaseApi()
-                .chatCollectionPartner(
-                    id, FirebaseAuth.instance.currentUser!.uid)
-                .doc(timestamp.toString())
-                .set(chatPartner.toJson());
-          }).then((value) {
+              .then((value) async {
+            await FirebaseApi()
+                .chatProfileCollection(AppAnother.userAuth!.uid)
+                .doc(id)
+                .update({
+              'timestamp': timestamp,
+              'is not seen message': notSeen + 1
+            });
+          });
+          await FirebaseApi()
+              .chatCollectionPartner(id, FirebaseAuth.instance.currentUser!.uid)
+              .doc(dateTime)
+              .set(chatPartner.toJson())
+              .then((value) async {
+            await FirebaseApi()
+                .chatProfileCollectionPartner(id)
+                .doc(AppAnother.userAuth!.uid)
+                .update({
+              'timestamp': timestamp,
+              'my not seen message': notSeen + 1,
+            });
             imageFileList.clear();
           });
+
+          if (insideChatGroup == true) {
+            await FirebaseApi()
+                .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+                .doc(dateTime)
+                .update({'my seen': true});
+            await FirebaseApi()
+                .chatProfileCollectionPartner(id)
+                .doc(AppAnother.userAuth!.uid)
+                .update({'my not seen message': 0});
+            await FirebaseApi()
+                .chatCollection(AppAnother.userAuth!.uid, id)
+                .doc(dateTime)
+                .update({'is seen': true});
+
+            await FirebaseApi()
+                .chatProfileCollection(AppAnother.userAuth!.uid)
+                .doc(id)
+                .update({'is not seen message': 0});
+          }
         } on PlatformException catch (err) {
           var message = 'An error, try again';
           if (err.message != null) {
@@ -317,8 +427,62 @@ class MessageController extends GetxController
     }
   }
 
-  Future<void> submitData(String id, BuildContext ctx, int type) async {
-    Timestamp timeStamp = Timestamp.now();
+  Future<void> changeStatusSeenSearch(int notseen, String id) async {
+    if (AppAnother.userAuth != null) {
+      FirebaseApi()
+          .chatCollection(AppAnother.userAuth!.uid, id)
+          .limit(notseen)
+          .orderBy('timestamp', descending: true)
+          .snapshots()
+          .map((event) async {
+        for (var item in event.docs) {
+          await FirebaseApi()
+              .chatCollection(AppAnother.userAuth!.uid, id)
+              .doc(item['id'])
+              .update({'my seen': true});
+          await FirebaseApi()
+              .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+              .doc(item['id'])
+              .update({'is seen': true});
+        }
+      });
+    }
+  }
+
+  Future<void> changeStatusSeen(
+      List<QueryDocumentSnapshot<Object?>> document, String id) async {
+    if (AppAnother.userAuth != null) {
+      for (int i = 0; i < document.length; i++) {
+        await FirebaseApi()
+            .chatCollection(AppAnother.userAuth!.uid, id)
+            .doc(document[i]['id'].toString())
+            .update({'my seen': true});
+
+        await FirebaseApi()
+            .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+            .doc(document[i]['id'].toString())
+            .update({'is seen': true});
+      }
+    }
+  }
+
+  Future<void> changeNotSeenValue(String id) async {
+    if (AppAnother.userAuth != null) {
+      await FirebaseApi()
+          .chatProfileCollection(AppAnother.userAuth!.uid)
+          .doc(id)
+          .update({'my not seen message': 0});
+      await FirebaseApi()
+          .chatProfileCollectionPartner(id)
+          .doc(AppAnother.userAuth!.uid)
+          .update({'is not seen message': 0});
+    }
+  }
+
+  Future<void> submitData(String id, BuildContext ctx, int type, int notSeen,
+      bool insideChatGroup) async {
+    Timestamp timestamp = Timestamp.now();
+    String dateTime = DateTime.now().toString();
     if (FirebaseAuth.instance.currentUser != null) {
       if (type == 1 ? _storeImage != null : audioFile != null) {
         try {
@@ -331,30 +495,69 @@ class MessageController extends GetxController
           await ref.putFile(type == 1 ? _storeImage! : audioFile!);
           final url = await ref.getDownloadURL();
 
-          ChatModel chatPartner = ChatModel(
-              content: url,
-              id: timeStamp,
-              type: TypeMessage.image,
-              isMe: false,
-              seen: false);
           ChatModel chatUser = ChatModel(
               content: url,
-              id: timeStamp,
+              id: dateTime,
+              timestamp: timestamp,
               type: TypeMessage.image,
               isMe: true,
-              seen: true);
+              isSeen: false,
+              mySeen: true);
+          ChatModel chatPartner = ChatModel(
+              content: url,
+              id: dateTime,
+              timestamp: timestamp,
+              type: TypeMessage.image,
+              isMe: false,
+              isSeen: true,
+              mySeen: false);
           await FirebaseApi()
               .chatCollection(FirebaseAuth.instance.currentUser!.uid, id)
-              .doc(timeStamp.toString())
+              .doc(dateTime)
               .set(chatUser.toJson())
               .then((value) async {
-            FirebaseApi()
-                .chatCollectionPartner(
-                    id, FirebaseAuth.instance.currentUser!.uid)
-                .doc(timeStamp.toString())
-                .set(chatPartner.toJson())
-                .then((value) => _storeImage == null);
+            await FirebaseApi()
+                .chatProfileCollection(AppAnother.userAuth!.uid)
+                .doc(id)
+                .update({
+              'timestamp': timestamp,
+              'is not seen message': notSeen + 1
+            });
           });
+          await FirebaseApi()
+              .chatCollectionPartner(id, FirebaseAuth.instance.currentUser!.uid)
+              .doc(dateTime)
+              .set(chatPartner.toJson())
+              .then((value) async {
+            await FirebaseApi()
+                .chatProfileCollectionPartner(id)
+                .doc(AppAnother.userAuth!.uid)
+                .update({
+              'timestamp': timestamp,
+              'my not seen message': notSeen + 1,
+            });
+
+            _storeImage = null;
+          });
+          if (insideChatGroup == true) {
+            await FirebaseApi()
+                .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+                .doc(dateTime)
+                .update({'my seen': true});
+            await FirebaseApi()
+                .chatProfileCollectionPartner(id)
+                .doc(AppAnother.userAuth!.uid)
+                .update({'my not seen message': 0});
+            await FirebaseApi()
+                .chatCollection(AppAnother.userAuth!.uid, id)
+                .doc(dateTime)
+                .update({'is seen': true});
+
+            await FirebaseApi()
+                .chatProfileCollection(AppAnother.userAuth!.uid)
+                .doc(id)
+                .update({'is not seen message': 0});
+          }
         } on PlatformException catch (err) {
           var message = 'An error, try again';
           if (err.message != null) {
@@ -541,14 +744,16 @@ class MessageController extends GetxController
     }
   }
 
-  void getBottomSheet(BuildContext context, String id) {
+  void getBottomSheet(
+      BuildContext context, String id, int isNotSeen, bool insideChatGroup) {
     showModalBottomSheet(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(AppDimens.dimens_25),
                 topRight: Radius.circular(AppDimens.dimens_25))),
         context: context,
-        builder: (_) => SizedBox(height: 230, child: ListenAgain(id)));
+        builder: (_) => SizedBox(
+            height: 230, child: ListenAgain(isNotSeen, id, insideChatGroup)));
   }
 
   // củ lạc giòn tan
@@ -744,5 +949,118 @@ class MessageController extends GetxController
       return const Radius.circular(AppDimens.dimens_12);
     }
   }
+
   ////
+  // Đặt circle avatar
+  bool compareDateTime(DateTime dateTime, DateTime dateTime1) {
+    return dateTime.day == dateTime1.day &&
+        dateTime.month == dateTime1.month &&
+        dateTime.year == dateTime1.year;
+  }
+
+  bool getCircleAvatar(int index, Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate();
+
+    if (index > 0 && index < chatContent.value.length) {
+      DateTime dateTime1 = chatContent.value[index - 1].timestamp.toDate();
+
+      if (compareDateTime(dateTime, dateTime1) &&
+          !chatContent.value[index - 1].isMe) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  Map<String, dynamic> getTextTime(
+    int index,
+  ) {
+    DateTime dateTime = chatContent.value[index].timestamp.toDate();
+    var from = DateTime.parse(dateTime.toString().split(' ')[0]);
+    var now = DateTime.parse(DateTime.now().toString().split(' ')[0]);
+    if (index < chatContent.value.length - 1) {
+      DateTime dateTime1 = chatContent.value[index + 1].timestamp.toDate();
+
+      var to = DateTime.parse(dateTime1.toString().split(' ')[0]);
+      if (from.difference(to).inDays == 0) {
+        Map<String, dynamic> value = {'visibility': false, 'value': ''};
+        return value;
+      } else {
+        if (now.difference(from).inDays == 0) {
+          Map<String, dynamic> value = {
+            'visibility': true,
+            'value': 'Hôm nay, ${dateTime.hour}:${dateTime.minute}'
+          };
+          return value;
+        } else if (now.difference(from).inDays == 1) {
+          Map<String, dynamic> value = {
+            'visibility': true,
+            'value': 'Hôm qua ${dateTime.hour}:${dateTime.minute}'
+          };
+          return value;
+        } else {
+          Map<String, dynamic> value = {
+            'visibility': true,
+            'value':
+                '${dateTime.hour}:${dateTime.minute}, ${dateTime.day} THG ${dateTime.month}'
+          };
+          return value;
+        }
+      }
+    } else {
+      if (now.difference(from).inDays == 0) {
+        Map<String, dynamic> value = {
+          'visibility': true,
+          'value': 'Hôm nay, ${dateTime.hour}:${dateTime.minute}'
+        };
+        return value;
+      } else if (now.difference(from).inDays == 1) {
+        Map<String, dynamic> value = {
+          'visibility': true,
+          'value': 'Hôm qua ${dateTime.hour}:${dateTime.minute}'
+        };
+        return value;
+      } else {
+        Map<String, dynamic> value = {
+          'visibility': true,
+          'value':
+              '${dateTime.hour}:${dateTime.minute}, ${dateTime.day} THG ${dateTime.month}'
+        };
+        return value;
+      }
+    }
+  }
+
+  bool getSeenWidget(int index) {
+    if (index == 0) {
+      if (chatContent.value[index].isSeen == true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (chatContent.value[index].isSeen == true) {
+        if (chatContent.value[index - 1].isSeen == true) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
+    }
+  }
+
+  List<ChatProfileModel> getSearchChatSuggestions(String query) {
+    List<ChatProfileModel> result = [];
+    for (var item in chatProfileUser) {
+      if (item.name.toLowerCase().contains(query.toLowerCase())) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
 }

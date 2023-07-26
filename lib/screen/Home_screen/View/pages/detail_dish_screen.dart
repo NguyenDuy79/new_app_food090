@@ -291,7 +291,8 @@ class DetailDishScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: ColorConstants.colorWhite,
                               )),
-                          Text(' ${dish.price * controller.count}VNĐ',
+                          Text(
+                              ' ${int.parse(dish.price) * controller.count}VNĐ',
                               style: const TextStyle(
                                   fontSize: AppDimens.dimens_23,
                                   fontWeight: FontWeight.bold,

@@ -27,6 +27,20 @@ class FirebaseApi {
         .collection(AppString.kitchenSearch);
   }
 
+  CollectionReference orderSearchCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.users)
+        .doc(uid)
+        .collection(AppString.orderSearch);
+  }
+
+  CollectionReference chatSearchCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.users)
+        .doc(uid)
+        .collection(AppString.messageSearch);
+  }
+
   CollectionReference chatCollection(String uid, String id) {
     return FirebaseFirestore.instance
         .collection(AppString.users)

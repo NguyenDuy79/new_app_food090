@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:new_ap/config/app_font.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/edit_profile_screen.dart';
 import 'package:new_ap/screen/Home_screen/controllers/profile_controller.dart';
 
@@ -22,7 +23,7 @@ class ProfileScreen extends StatelessWidget {
           : Scaffold(
               appBar: AppBar(
                 elevation: AppDimens.dimens_0,
-                backgroundColor: ColorConstants.colorWhite,
+                backgroundColor: ColorConstants.colorGrey0,
                 title: const Text(
                   'Profile',
                   style: TextStyle(
@@ -281,9 +282,10 @@ class ProfileScreen extends StatelessWidget {
               ),
               bottomNavigationBar: Container(
                 width: double.infinity,
-                height: AppDimens.dimens_40,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppDimens.dimens_20),
+                height: AppDimens.dimens_65,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.dimens_20,
+                    vertical: AppDimens.dimens_10),
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         elevation: AppDimens.dimens_5,
@@ -299,9 +301,9 @@ class ProfileScreen extends StatelessWidget {
                     child: const Text(
                       'Log out',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: AppFont.semiBold,
                           fontSize: AppDimens.dimens_25,
-                          color: ColorConstants.colorBlack),
+                          color: ColorConstants.colorWhite),
                     )),
               ),
             ),

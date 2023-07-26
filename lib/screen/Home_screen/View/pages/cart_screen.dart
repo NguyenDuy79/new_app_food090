@@ -40,7 +40,7 @@ class CartScreen extends GetWidget<CartController> {
             ),
           ),
           centerTitle: true,
-          backgroundColor: ColorConstants.colorWhite,
+          backgroundColor: ColorConstants.colorGrey0,
           elevation: 0,
           title: const Text(
             'Cart',
@@ -65,7 +65,8 @@ class CartScreen extends GetWidget<CartController> {
           ),
         ),
         bottomNavigationBar: Obx(() => Container(
-            margin: const EdgeInsets.symmetric(horizontal: AppDimens.dimens_10),
+            margin: const EdgeInsets.symmetric(
+                horizontal: AppDimens.dimens_10, vertical: AppDimens.dimens_10),
             height: AppDimens.dimens_54,
             child: ElevatedButton(
                 style: ElevatedButton.styleFrom(

@@ -14,8 +14,10 @@ import '../../../../config/app_dimens.dart';
 
 // ignore: must_be_immutable
 class NewPartnerMessage extends StatelessWidget {
-  NewPartnerMessage(this.id, {super.key});
+  NewPartnerMessage(this.id, this.notSeen, this.insideChatGroup, {super.key});
   final String id;
+  final int notSeen;
+  final bool insideChatGroup;
   MessagePartnerController controller = Get.find<MessagePartnerController>();
 
   @override
@@ -70,7 +72,10 @@ class NewPartnerMessage extends StatelessWidget {
                                               await controller.stop().then(
                                                   (value) =>
                                                       controller.getBottomSheet(
-                                                          context, id));
+                                                          context,
+                                                          id,
+                                                          notSeen,
+                                                          insideChatGroup));
                                             },
                                             icon: const Icon(
                                               Icons.pause,
@@ -92,7 +97,11 @@ class NewPartnerMessage extends StatelessWidget {
                               onPressed: () {
                                 controller.stop().then((value) async {
                                   controller.submitData(
-                                      id, context, TypeMessage.record);
+                                      id,
+                                      context,
+                                      TypeMessage.record,
+                                      notSeen,
+                                      insideChatGroup);
                                 });
                               },
                               icon: const Icon(
@@ -135,7 +144,10 @@ class NewPartnerMessage extends StatelessWidget {
                                       return;
                                     } else {
                                       Get.to(() => ImageViewPartnerScreen(
-                                          id, TypeMessage.image));
+                                          id,
+                                          TypeMessage.image,
+                                          notSeen,
+                                          insideChatGroup));
                                     }
                                   });
                                 },
@@ -151,7 +163,8 @@ class NewPartnerMessage extends StatelessWidget {
                             child: IconButton(
                                 onPressed: () {
                                   controller.takePictureGallery().then((value) {
-                                    controller.submitMultiImage(id, context);
+                                    controller.submitMultiImage(
+                                        id, context, notSeen, insideChatGroup);
                                     log(controller.imageFileList.length
                                         .toString());
                                   });
@@ -187,9 +200,6 @@ class NewPartnerMessage extends StatelessWidget {
                           Expanded(
                             child: TextField(
                               controller: controller.messageController,
-                              onTap: () {
-                                controller.visibilityStickerWidget();
-                              },
                               decoration: const InputDecoration(
                                 hintText: 'Aa',
                                 contentPadding: EdgeInsets.symmetric(
@@ -213,7 +223,17 @@ class NewPartnerMessage extends StatelessWidget {
                               onChanged: (value) {
                                 controller.checkEmtyTextField(value);
                               },
-                              onSubmitted: (_) {},
+                              onSubmitted: (_) {
+                                if (controller.checkEmty == true) {
+                                  controller.submitNewMessage(
+                                      id,
+                                      context,
+                                      controller.messageController.text,
+                                      TypeMessage.text,
+                                      notSeen,
+                                      insideChatGroup);
+                                }
+                              },
                             ),
                           ),
                           Obx(() {
@@ -224,7 +244,9 @@ class NewPartnerMessage extends StatelessWidget {
                                         id,
                                         context,
                                         controller.messageController.text,
-                                        TypeMessage.text);
+                                        TypeMessage.text,
+                                        notSeen,
+                                        insideChatGroup);
                                   },
                                   icon: const Icon(
                                     Icons.send,
@@ -243,8 +265,13 @@ class NewPartnerMessage extends StatelessWidget {
                                         backgroundColor:
                                             ColorConstants.colorGrey0),
                                     onPressed: () {
-                                      controller.submitNewMessage(id, context,
-                                          'like', TypeMessage.sticker);
+                                      controller.submitNewMessage(
+                                          id,
+                                          context,
+                                          'like',
+                                          TypeMessage.sticker,
+                                          notSeen,
+                                          insideChatGroup);
                                     },
                                     child: Image.asset(
                                       AppStoragePath.like,
@@ -277,7 +304,9 @@ class NewPartnerMessage extends StatelessWidget {
                                 id,
                                 context,
                                 AppStoragePath.sticker.keys.toList()[index],
-                                TypeMessage.sticker);
+                                TypeMessage.sticker,
+                                notSeen,
+                                insideChatGroup);
                           },
                           child: Image.asset(
                               AppStoragePath.sticker.values.toList()[index]))),

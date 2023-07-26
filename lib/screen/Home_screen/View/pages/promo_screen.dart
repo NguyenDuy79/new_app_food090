@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:new_ap/config/app_font.dart';
 import 'package:new_ap/model/promo_model.dart';
 import '../../../../config/app_colors.dart';
 import '../../../../config/app_dimens.dart';
@@ -35,9 +36,11 @@ class PromoScreen extends StatelessWidget {
             color: ColorConstants.themeColor,
           ),
         ),
+        centerTitle: true,
         title: const Text(
           'Choose Voucher',
-          style: TextStyle(color: ColorConstants.colorBlack),
+          style: TextStyle(
+              color: ColorConstants.colorBlack, fontWeight: AppFont.semiBold),
         ),
       ),
       body: GetBuilder<CartController>(
@@ -45,7 +48,7 @@ class PromoScreen extends StatelessWidget {
         builder: (controller) => SingleChildScrollView(
           child: Column(children: <Widget>[
             Container(
-              color: ColorConstants.colorWhite,
+              color: ColorConstants.colorGrey0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

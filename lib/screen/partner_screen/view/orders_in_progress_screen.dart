@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:new_ap/common_app/common_widget.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/screen/partner_screen/controller/order_now_controller.dart';
 
@@ -294,23 +295,34 @@ class OrdersInProgressScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                      controller.getWidget(context, 1, Icons.note_alt_outlined,
-                          controller.orderActive[0].timeOne),
-                      controller.getWidget(
+                      CommonWidget.getWidget(
+                          controller.status.value,
+                          context,
+                          1,
+                          Icons.note_alt_outlined,
+                          controller.orderActive[0].timeOne,
+                          controller.url),
+                      CommonWidget.getWidget(
+                          controller.status.value,
                           context,
                           2,
                           Icons.soup_kitchen_outlined,
-                          controller.orderActive[0].timeTwo),
-                      controller.getWidget(
+                          controller.orderActive[0].timeTwo,
+                          controller.url),
+                      CommonWidget.getWidget(
+                          controller.status.value,
                           context,
                           3,
-                          Icons.delivery_dining_outlined,
-                          controller.orderActive[0].timeThree),
-                      controller.getWidget(
+                          Icons.soup_kitchen_outlined,
+                          controller.orderActive[0].timeThree,
+                          controller.url),
+                      CommonWidget.getWidget(
+                          controller.status.value,
                           context,
                           4,
-                          Icons.door_back_door_outlined,
-                          controller.orderActive[0].timeFour)
+                          Icons.soup_kitchen_outlined,
+                          controller.orderActive[0].timeFour,
+                          controller.url),
                     ],
                   ),
           ),

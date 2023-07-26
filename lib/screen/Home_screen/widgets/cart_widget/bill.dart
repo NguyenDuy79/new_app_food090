@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
 
 import '../../../../config/app_dimens.dart';
-import '../../View/tabs/promo_screen.dart';
+import '../../View/pages/promo_screen.dart';
 
 // ignore: must_be_immutable
 class BillCart extends StatelessWidget {

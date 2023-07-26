@@ -31,8 +31,8 @@ class MessageWidget extends StatelessWidget {
                     return ChatBubble(
                         controller.chatContent.value[index].content,
                         controller.chatContent.value[index].isMe,
-                        controller.chatContent.value[index].seen,
-                        controller.chatContent.value[index].id,
+                        controller.chatContent.value[index].isSeen,
+                        controller.chatContent.value[index].timestamp,
                         index,
                         image,
                         controller.chatContent.value[index].type);

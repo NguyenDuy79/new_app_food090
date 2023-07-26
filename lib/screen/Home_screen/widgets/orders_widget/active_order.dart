@@ -6,6 +6,7 @@ import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
 
 import '../../../../config/app_colors.dart';
 import '../../../../config/app_dimens.dart';
+import '../../../../config/app_font.dart';
 
 class ActiveOrder extends StatelessWidget {
   const ActiveOrder(this.height, this.width, {super.key});
@@ -56,114 +57,162 @@ class ActiveOrder extends StatelessWidget {
                         height:
                             controller.getActiveOrder()[index].statusDelivery ==
                                     'Giao hàng thành công'
-                                ? AppDimens.dimens_160
-                                : AppDimens.dimens_120,
+                                ? AppDimens.dimens_200
+                                : AppDimens.dimens_160,
                         width: width,
-                        margin: const EdgeInsets.all(AppDimens.dimens_20),
+                        margin: const EdgeInsets.only(
+                            top: AppDimens.dimens_20,
+                            right: AppDimens.dimens_20,
+                            left: AppDimens.dimens_20),
                         decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(AppDimens.dimens_15),
-                            color: ColorConstants.colorGrey1),
+                            color: ColorConstants.colorGrey2),
                         child: Column(
                           children: <Widget>[
                             GestureDetector(
                               onTap: () {},
-                              child: Row(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(
-                                        AppDimens.dimens_10),
-                                    child: SizedBox(
-                                      height: AppDimens.dimens_90,
-                                      width: AppDimens.dimens_90,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            AppDimens.dimens_15),
-                                        child: Image.network(
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: AppDimens.dimens_20,
+                                        vertical: AppDimens.dimens_10),
+                                    child: Row(
+                                      children: <Widget>[
+                                        const Icon(
+                                          size: AppDimens.dimens_25,
+                                          Icons.store,
+                                          color: ColorConstants.themeColor,
+                                        ),
+                                        const SizedBox(
+                                          width: AppDimens.dimens_5,
+                                        ),
+                                        Text(
                                           controller
                                               .getActiveOrder()[index]
-                                              .url[0],
-                                          fit: BoxFit.fitHeight,
+                                              .kitchenName,
+                                          style: const TextStyle(
+                                              fontSize: AppDimens.dimens_25,
+                                              fontWeight: AppFont.semiBold),
                                         ),
-                                      ),
+                                        const Expanded(child: SizedBox()),
+                                        Text(
+                                          controller
+                                              .getActiveOrder()[index]
+                                              .status,
+                                          style: const TextStyle(
+                                              fontSize: AppDimens.dimens_20,
+                                              fontWeight: AppFont.light,
+                                              color: ColorConstants.themeColor),
+                                        )
+                                      ],
                                     ),
                                   ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(
-                                          AppDimens.dimens_10),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: AppDimens.dimens_5),
-                                            child: Text(
-                                              '${controller.getActiveOrder()[index].name[0][0].toUpperCase()}${controller.getActiveOrder()[index].name[0].substring(1)} ',
-                                              style: const TextStyle(
-                                                  fontSize: AppDimens.dimens_20,
-                                                  fontWeight: FontWeight.bold),
+                                  Row(
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                            AppDimens.dimens_10),
+                                        child: SizedBox(
+                                          height: AppDimens.dimens_90,
+                                          width: AppDimens.dimens_90,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppDimens.dimens_15),
+                                            child: Image.network(
+                                              controller
+                                                  .getActiveOrder()[index]
+                                                  .url[0],
+                                              fit: BoxFit.fitHeight,
                                             ),
                                           ),
-                                          Text(
-                                              '${controller.getActiveOrder()[index].productId.length} items',
-                                              style: const TextStyle(
-                                                fontSize: AppDimens.dimens_20,
-                                              )),
-                                          Container(
-                                            padding: const EdgeInsets.only(
-                                                top: AppDimens.dimens_5),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: <Widget>[
-                                                Text(
-                                                  '${controller.getNewPrice(controller.getActiveOrder()[index].price)}VNĐ',
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(
+                                              AppDimens.dimens_10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: AppDimens.dimens_5),
+                                                child: Text(
+                                                  '${controller.getActiveOrder()[index].name[0][0].toUpperCase()}${controller.getActiveOrder()[index].name[0].substring(1)} ',
                                                   style: const TextStyle(
                                                       fontSize:
-                                                          AppDimens.dimens_15,
-                                                      color: ColorConstants
-                                                          .themeColor),
+                                                          AppDimens.dimens_20,
+                                                      fontWeight:
+                                                          FontWeight.bold),
                                                 ),
-                                                const SizedBox(
-                                                  width: AppDimens.dimens_15,
-                                                ),
-                                                Flexible(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            AppDimens.dimens_5),
-                                                    decoration: BoxDecoration(
-                                                        color: ColorConstants
-                                                            .themeColor,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                AppDimens
-                                                                    .dimens_5)),
-                                                    child: FittedBox(
-                                                      child: Text(
-                                                        controller
-                                                            .getActiveOrder()[
-                                                                index]
-                                                            .statusDelivery,
-                                                        style: const TextStyle(
-                                                            fontSize: AppDimens
-                                                                .dimens_15,
-                                                            color: ColorConstants
-                                                                .colorWhite),
-                                                      ),
+                                              ),
+                                              Text(
+                                                  '${controller.getActiveOrder()[index].productId.length} items',
+                                                  style: const TextStyle(
+                                                    fontSize:
+                                                        AppDimens.dimens_20,
+                                                  )),
+                                              Container(
+                                                padding: const EdgeInsets.only(
+                                                    top: AppDimens.dimens_5),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      '${controller.getNewPrice(controller.getActiveOrder()[index].price)}VNĐ',
+                                                      style: const TextStyle(
+                                                          fontSize: AppDimens
+                                                              .dimens_15,
+                                                          color: ColorConstants
+                                                              .themeColor),
                                                     ),
-                                                  ),
-                                                )
-                                              ],
-                                            ),
+                                                    const SizedBox(
+                                                      width:
+                                                          AppDimens.dimens_15,
+                                                    ),
+                                                    Flexible(
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .all(
+                                                                AppDimens
+                                                                    .dimens_5),
+                                                        decoration: BoxDecoration(
+                                                            color:
+                                                                ColorConstants
+                                                                    .themeColor,
+                                                            borderRadius: BorderRadius
+                                                                .circular(AppDimens
+                                                                    .dimens_5)),
+                                                        child: FittedBox(
+                                                          child: Text(
+                                                            controller
+                                                                .getActiveOrder()[
+                                                                    index]
+                                                                .statusDelivery,
+                                                            style: const TextStyle(
+                                                                fontSize: AppDimens
+                                                                    .dimens_15,
+                                                                color: ColorConstants
+                                                                    .colorWhite),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),

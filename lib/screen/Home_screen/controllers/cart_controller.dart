@@ -55,6 +55,7 @@ class CartController extends GetxController {
 
   //cart
   getKitchen() {
+    kitchen = [];
     if (_cart.value.isNotEmpty) {
       for (int i = 0; i < _cart.value.length; i++) {
         if (!kitchen.contains(_cart.value[i].kitchenId)) {

@@ -5,6 +5,7 @@ import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
 import 'package:new_ap/screen/Home_screen/widgets/orders_widget/active_order.dart';
 import 'package:new_ap/screen/Home_screen/widgets/orders_widget/cancelled_order.dart';
 import 'package:new_ap/screen/Home_screen/widgets/orders_widget/completed_order.dart';
+import 'package:new_ap/screen/Search_Screen/home/search_order_screen.dart';
 
 import '../../../../config/app_dimens.dart';
 
@@ -33,7 +34,10 @@ class OrderScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.to(() => SearchOrderScreen());
+                  },
+                  iconSize: AppDimens.dimens_35,
                   icon: const Icon(
                     Icons.search_outlined,
                     color: ColorConstants.themeColor,

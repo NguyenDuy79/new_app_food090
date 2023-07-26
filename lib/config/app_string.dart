@@ -17,10 +17,21 @@ class AppString {
   static const statusDelivery2 = 'Đang chuẩn bị';
   static const statusDelivery3 = 'Đang trên đường giao đến bạn';
   static const statusDelivery4 = 'Giao hàng thành công';
+  static const statusActive = 'Active';
+  static const statusCompleted = 'Completed';
+  static const statusCancelled = 'Cancelled';
   static const home = 'Home';
   static const main = 'Main';
   static const message = 'Message';
   static const orderUpper = 'Order';
   static const profile = 'Profile';
   static const kitchenSearch = 'Kitchen search';
+  static const orderSearch = 'Order search';
+  static const messageSearch = 'Message search';
+  static const List<String> statusDelivery = [
+    AppString.statusDelivery1,
+    AppString.statusDelivery2,
+    AppString.statusDelivery3,
+    AppString.statusDelivery4
+  ];
 }

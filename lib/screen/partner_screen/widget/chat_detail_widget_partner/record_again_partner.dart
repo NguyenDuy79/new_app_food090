@@ -8,14 +8,17 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../config/app_dimens.dart';
 import '../../controller/message_partner_controller.dart';
 
-class ListenAgain extends StatefulWidget {
-  const ListenAgain(this.id, {super.key});
+class ListenAgainPartner extends StatefulWidget {
+  const ListenAgainPartner(this.notSeen, this.id, this.insideChatGroup,
+      {super.key});
   final String id;
+  final int notSeen;
+  final bool insideChatGroup;
   @override
-  State<ListenAgain> createState() => _ListenAgainState();
+  State<ListenAgainPartner> createState() => _ListenAgainState();
 }
 
-class _ListenAgainState extends State<ListenAgain> {
+class _ListenAgainState extends State<ListenAgainPartner> {
   MessagePartnerController controller = Get.find<MessagePartnerController>();
   @override
   void initState() {
@@ -126,7 +129,11 @@ class _ListenAgainState extends State<ListenAgain> {
                               BorderRadius.circular(AppDimens.dimens_20))),
                   onPressed: () {
                     controller.submitData(
-                        widget.id, context, TypeMessage.record);
+                        widget.id,
+                        context,
+                        TypeMessage.record,
+                        widget.notSeen,
+                        widget.insideChatGroup);
                   },
                   child: Row(
                     children: const <Widget>[

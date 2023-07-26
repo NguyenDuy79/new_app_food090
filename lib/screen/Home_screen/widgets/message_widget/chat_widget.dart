@@ -20,6 +20,7 @@ class ChatsWidget extends StatelessWidget {
                   itemCount: controller.chatProfileUser.length,
                   itemBuilder: (context, index) {
                     return ChatGroupItem(
+                        controller.chatProfileUser[index].myNotSeenMessage,
                         controller.chatProfileUser[index].image,
                         controller.chatProfileUser[index].name,
                         controller.chatProfileUser[index].id);

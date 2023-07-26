@@ -220,7 +220,7 @@ class ProfileController extends GetxController {
                           });
 
                           Get.back();
-                          Get.toNamed('/partner');
+                          Get.offNamed('/partner');
                         });
                       }
                     },
@@ -235,7 +235,7 @@ class ProfileController extends GetxController {
                 ],
               ));
     } else {
-      Get.toNamed('/partner');
+      Get.offNamed('/partner');
     }
   }
 }

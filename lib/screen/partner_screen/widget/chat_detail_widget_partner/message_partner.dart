@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_getx_widget.dart';
+
 import 'package:new_ap/config/app_colors.dart';
 
 import 'package:new_ap/screen/partner_screen/controller/message_partner_controller.dart';
@@ -29,14 +30,18 @@ class MessagePartnerWidget extends StatelessWidget {
                   itemCount: controller.chatContent.value.length,
                   itemBuilder: (context, index) {
                     controller.setListImage();
-                    return ChatPartnerBubble(
-                        controller.chatContent.value[index].content,
-                        controller.chatContent.value[index].isMe,
-                        controller.chatContent.value[index].seen,
-                        controller.chatContent.value[index].id,
-                        index,
-                        image,
-                        controller.chatContent.value[index].type);
+                    return controller.chatContent.value.isEmpty
+                        ? const Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : ChatPartnerBubble(
+                            controller.chatContent.value[index].content,
+                            controller.chatContent.value[index].isMe,
+                            controller.chatContent.value[index].isSeen,
+                            controller.chatContent.value[index].timestamp,
+                            index,
+                            image,
+                            controller.chatContent.value[index].type);
                   }),
             ));
       },
