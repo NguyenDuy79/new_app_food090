@@ -1,11 +1,17 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/firebase_api.dart';
+import '../../../common_app/common_widget.dart';
+import '../../../config/app_another.dart';
 import '../../../config/app_dimens.dart';
 import '../../../model/orders_model.dart';
+import '../../../model/user_model.dart';
 
 class HistoryController extends GetxController {
   final Rx<List<OrderModel>> _order = Rx<List<OrderModel>>([]);
@@ -14,12 +20,13 @@ class HistoryController extends GetxController {
   @override
   void onInit() {
     if (FirebaseAuth.instance.currentUser != null) {
-      _order.bindStream(orderNowStream());
+      _order.bindStream(orderHistoryStream());
+      _historySearch.bindStream(getStreamHisrtory(AppAnother.userAuth!.uid));
     }
     super.onInit();
   }
 
-  Stream<List<OrderModel>> orderNowStream() {
+  Stream<List<OrderModel>> orderHistoryStream() {
     return FirebaseApi()
         .orderHistoryPartner(FirebaseAuth.instance.currentUser!.uid)
         .orderBy('timeStamp', descending: true)
@@ -34,8 +41,13 @@ class HistoryController extends GetxController {
               (query.docs[0].data() as Map<String, dynamic>)['productPrice'] !=
                   null) {
             for (int i = 0; i < query.docs.length; i++) {
-              url.add(
-                  (query.docs[i].data() as Map<String, dynamic>)['billImage']);
+              if ((query.docs[i].data() as Map<String, dynamic>)['status'] ==
+                  'Completed') {
+                url.add((query.docs[i].data()
+                    as Map<String, dynamic>)['billImage']);
+              } else {
+                url.add('');
+              }
 
               listOrderStream.add(OrderModel.fromJson(
                   query.docs[i].data() as Map<String, dynamic>));
@@ -134,5 +146,135 @@ class HistoryController extends GetxController {
         ],
       ),
     );
+  }
+
+  final TextEditingController textEditing = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  FocusNode get focusNode => _focusNode;
+  final Rx<List<SearchModel>> _historySearch = Rx<List<SearchModel>>([]);
+  List<String> historySearch = [];
+  final Rx<List<String>> _suggestString = Rx<List<String>>([]);
+  List<String> get suggestString => _suggestString.value;
+  final Rx<List<OrderModel>> _resultSearch = Rx<List<OrderModel>>([]);
+  List<OrderModel> get resultSearch => _resultSearch.value;
+  final RxBool _isCheck = false.obs;
+  bool get isCheck => _isCheck.value;
+  final RxBool _isMain = true.obs;
+  bool get isMain => _isMain.value;
+  final RxBool _isLoading = false.obs;
+  bool get isLoading => _isLoading.value;
+
+  Stream<List<SearchModel>> getStreamHisrtory(String uid) {
+    return FirebaseApi()
+        .orderHistorySearchCollection(uid)
+        .orderBy('id', descending: true)
+        .snapshots()
+        .map((event) {
+      List<SearchModel> listSearchStream = [];
+      for (var item in event.docs) {
+        listSearchStream
+            .add(SearchModel.fromJson(item.data() as Map<String, dynamic>));
+      }
+      return listSearchStream;
+    });
+  }
+
+  Future<void> submitQuerySearch(String query, BuildContext ctx) async {
+    Timestamp timestamp = Timestamp.now();
+
+    if (AppAnother.userAuth != null) {
+      try {
+        if (historySearch.length <= 10) {
+          await FirebaseApi()
+              .orderHistorySearchCollection(AppAnother.userAuth!.uid)
+              .doc(timestamp.toString())
+              .set({'id': timestamp, 'search value': query.trim()}).catchError(
+                  (e) => throw e);
+        } else {
+          Timestamp id =
+              _historySearch.value[_historySearch.value.length - 1].id;
+          await FirebaseApi()
+              .orderHistorySearchCollection(AppAnother.userAuth!.uid)
+              .doc(timestamp.toString())
+              .set({'id': timestamp, 'search value': query.trim()}).then(
+                  (value) => FirebaseApi()
+                      .orderSearchCollection(AppAnother.userAuth!.uid)
+                      .doc(id.toString())
+                      .delete());
+        }
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
+      }
+    }
+  }
+
+  changeStatusEmpty() {
+    if (textEditing.text.trim() == '') {
+      _isCheck.value = false;
+    } else {
+      _isCheck.value = true;
+    }
+  }
+
+  getTrueIsMain() {
+    _isMain.value = true;
+  }
+
+  getFalseIsMain() {
+    _isMain.value = false;
+  }
+
+  getSuggest(String value) {
+    _suggestString.value = [];
+    for (var item in _order.value) {
+      if (item.kitchenName.toLowerCase().contains(value.toLowerCase())) {
+        if (!_suggestString.value.contains(item.kitchenName)) {
+          _suggestString.value.add(item.kitchenName);
+        }
+      }
+      for (var name in item.name) {
+        if (name.toLowerCase().contains(value.toLowerCase())) {
+          if (!_suggestString.value.contains(name)) {
+            _suggestString.value.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  getListQuery(String query) {
+    _isLoading.value = true;
+    _resultSearch.value = [];
+    for (var item in _order.value) {
+      if (item.kitchenName.toLowerCase().contains(query.toLowerCase())) {
+        if (!_resultSearch.value.contains(item)) {
+          _resultSearch.value.add(item);
+        }
+      }
+      for (var name in item.name) {
+        if (name.toLowerCase().contains(query.toLowerCase())) {
+          if (!_resultSearch.value.contains(item)) {
+            _resultSearch.value.add(item);
+          }
+        }
+      }
+    }
+    _isLoading.value = false;
+  }
+
+  getValueHistorySearch() {
+    historySearch = [];
+    for (var item in _historySearch.value) {
+      if (!historySearch.contains(item.query)) {
+        historySearch.add(item.query);
+      }
+    }
   }
 }

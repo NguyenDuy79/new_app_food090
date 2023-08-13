@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/screen/partner_screen/controller/message_partner_controller.dart';
-import 'package:new_ap/screen/partner_screen/view/chat_detail_partner_screen.dart';
+import 'package:new_ap/screen/partner_screen/view/pages/chat_detail_partner_screen.dart';
 
 import '../../../../config/app_another.dart';
 import '../../../../config/app_dimens.dart';
@@ -51,10 +51,10 @@ class ChatGroupPartnerItem extends StatelessWidget {
                       AppAnother.userAuth!.uid, id, controller.limit));
                   controller.chatProfile
                       .bindStream(controller.getChatGroupProfile(id));
-                  controller.getChatDetailScreen(id);
-                  controller.changeNotSeenValue(id);
+                  controller.getChatDetailScreen(id, contex);
+                  controller.changeNotSeenValue(id, contex);
 
-                  controller.changeStatusSeen(document, id);
+                  controller.changeStatusSeen(document, id, contex);
                   Get.to(() => const ChatDetailPartnerScreen());
                 },
                 child: Container(

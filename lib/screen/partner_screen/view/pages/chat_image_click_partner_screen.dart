@@ -113,6 +113,7 @@ class _ChatImageClickScreenPartnerState
                     }
                   },
                   child: Scaffold(
+                    backgroundColor: ColorConstants.colorWhite,
                     appBar: AppBar(
                       backgroundColor: ColorConstants.colorWhite,
                       elevation: 0,
@@ -140,94 +141,65 @@ class _ChatImageClickScreenPartnerState
                             ))
                       ],
                     ),
-                    body: Scaffold(
-                      appBar: AppBar(
-                        backgroundColor: ColorConstants.colorWhite,
-                        elevation: 0,
-                        leading: IconButton(
-                            onPressed: () {
-                              controller.resetFill();
-                              Get.back();
+                    body: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: AnimatedContainer(
+                          height: controller.height1,
+                          width: width * 0.8,
+                          curve: Curves.fastOutSlowIn,
+                          duration: const Duration(milliseconds: 0),
+                          child: GestureDetector(
+                            onTap: () {
+                              controller.changeStatusFill();
                             },
-                            icon: const Icon(
-                              Icons.arrow_back_ios,
-                              color: ColorConstants.themeColor,
-                            )),
-                        actions: [
-                          IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.archive_outlined,
-                                color: ColorConstants.themeColor,
-                              )),
-                          IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.dehaze,
-                                color: ColorConstants.themeColor,
-                              ))
-                        ],
-                      ),
-                      body: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: AnimatedContainer(
-                            height: controller.height1,
-                            width: width * 0.8,
-                            curve: Curves.fastOutSlowIn,
-                            duration: const Duration(milliseconds: 0),
-                            child: GestureDetector(
-                              onTap: () {
-                                controller.changeStatusFill();
-                              },
-                              onVerticalDragUpdate: (details) {
-                                if (0 < details.delta.dy) {
-                                  controller.setFalseGestureUp();
-                                } else {
-                                  controller.setTrueGestureUp();
-                                }
-                                controller.reduceHeight1(details.delta.dy);
-                                if (controller.height1 > (height - remaining)) {
+                            onVerticalDragUpdate: (details) {
+                              if (0 < details.delta.dy) {
+                                controller.setFalseGestureUp();
+                              } else {
+                                controller.setTrueGestureUp();
+                              }
+                              controller.reduceHeight1(details.delta.dy);
+                              if (controller.height1 > (height - remaining)) {
+                                controller.setHeight1((height - remaining));
+                              } else if (controller.height1 < height * 0.2) {
+                                controller.setHeight1(height * 0.2);
+                              }
+                            },
+                            onVerticalDragEnd: (details) {
+                              if (controller.gestureUp) {
+                                controller.setHeight1((height - remaining));
+                              } else {
+                                if (details.primaryVelocity! > 500 &&
+                                    controller.height1 <= height * 0.6) {
+                                  Get.back();
+                                } else if (details.primaryVelocity! > 300 &&
+                                    controller.height1 > height * 0.6) {
                                   controller.setHeight1((height - remaining));
-                                } else if (controller.height1 < height * 0.2) {
-                                  controller.setHeight1(height * 0.2);
-                                }
-                              },
-                              onVerticalDragEnd: (details) {
-                                if (controller.gestureUp) {
-                                  controller.setHeight1((height - remaining));
+                                } else if (controller.height1 == height * 0.2) {
+                                  Get.back();
                                 } else {
-                                  if (details.primaryVelocity! > 500 &&
-                                      controller.height1 <= height * 0.6) {
-                                    Get.back();
-                                  } else if (details.primaryVelocity! > 300 &&
-                                      controller.height1 > height * 0.6) {
-                                    controller.setHeight1((height - remaining));
-                                  } else if (controller.height1 ==
-                                      height * 0.2) {
-                                    Get.back();
-                                  } else {
-                                    controller.setHeight1(height - remaining);
-                                  }
+                                  controller.setHeight1(height - remaining);
                                 }
-                              },
-                              child: Hero(
-                                tag: controller.listImage[index],
-                                child: Image.network(
-                                  controller.listImage[index],
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                ),
+                              }
+                            },
+                            child: Hero(
+                              tag: controller.listImage[index],
+                              child: Image.network(
+                                controller.listImage[index],
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                },
                               ),
-                            )),
-                      ),
+                            ),
+                          )),
                     ),
                   ),
-                )));
+                ),
+              ));
       },
     );
   }

@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:new_ap/model/chat_model.dart';
 import 'package:new_ap/screen/partner_screen/widget/chat_detail_widget_partner/record_again_partner.dart';
+import '../../../common_app/common_widget.dart';
 import '../../../config/app_another.dart';
 import '../../../config/firebase_api.dart';
 import '../../../model/user_model.dart';
@@ -41,8 +42,13 @@ class MessagePartnerController extends GetxController
       Rx<List<ChatProfileModel>>([]);
   List<ChatProfileModel> get chatProfileUser => _chatProfileUser.value;
   Rx<List<ChatModel>> chatContent = Rx<List<ChatModel>>([]);
-  Rx<UserModel> user =
-      UserModel(id: '', email: '', image: '', mobile: '', userName: '').obs;
+  Rx<UserModel> user = UserModel(
+    id: '',
+    email: '',
+    image: '',
+    mobile: '',
+    userName: '',
+  ).obs;
   final RxBool _checkEmty = false.obs;
   bool get checkEmty => _checkEmty.value;
   File? _storeImage;
@@ -185,49 +191,93 @@ class MessagePartnerController extends GetxController
     });
   }
 
-  Future<void> changeStatusSeen(
-      List<QueryDocumentSnapshot<Object?>> document, String id) async {
+  Future<void> changeStatusSeen(List<QueryDocumentSnapshot<Object?>> document,
+      String id, BuildContext ctx) async {
     if (AppAnother.userAuth != null) {
-      for (int i = 0; i < document.length; i++) {
-        await FirebaseApi()
-            .chatCollectionPartner(AppAnother.userAuth!.uid, id)
-            .doc(document[i]['id'].toString())
-            .update({'my seen': true});
+      try {
+        for (int i = 0; i < document.length; i++) {
+          await FirebaseApi()
+              .chatCollectionPartner(AppAnother.userAuth!.uid, id)
+              .doc(document[i]['id'].toString())
+              .update({'my seen': true});
 
-        await FirebaseApi()
-            .chatCollection(id, AppAnother.userAuth!.uid)
-            .doc(document[i]['id'].toString())
-            .update({'is seen': true});
+          await FirebaseApi()
+              .chatCollection(id, AppAnother.userAuth!.uid)
+              .doc(document[i]['id'].toString())
+              .update({'is seen': true});
+        }
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
 
-  Future<void> changeNotSeenValue(String id) async {
-    await FirebaseApi()
-        .chatProfileCollectionPartner(AppAnother.userAuth!.uid)
-        .doc(id)
-        .update({'my not seen message': 0});
-    await FirebaseApi()
-        .chatProfileCollection(id)
-        .doc(AppAnother.userAuth!.uid)
-        .update({'is not seen message': 0});
-  }
-
-  Future<void> getChatDetailScreen(String id) async {
-    if (AppAnother.userAuth != null) {
+  Future<void> changeNotSeenValue(String id, BuildContext ctx) async {
+    try {
+      await FirebaseApi()
+          .chatProfileCollectionPartner(AppAnother.userAuth!.uid)
+          .doc(id)
+          .update({'my not seen message': 0});
       await FirebaseApi()
           .chatProfileCollection(id)
           .doc(AppAnother.userAuth!.uid)
-          .update({'inside chat group': true});
+          .update({'is not seen message': 0});
+    } on PlatformException catch (err) {
+      Get.back();
+      log(err.message.toString());
+
+      CommonWidget.showErrorDialog(ctx);
+    } catch (err) {
+      Get.back();
+
+      CommonWidget.showErrorDialog(ctx);
     }
   }
 
-  Future<void> outChatDetailScreen(String id) async {
-    if (AppAnother.userAuth != null) {
-      await FirebaseApi()
-          .chatProfileCollection(id)
-          .doc(AppAnother.userAuth!.uid)
-          .update({'inside chat group': false});
+  Future<void> getChatDetailScreen(String id, BuildContext ctx) async {
+    try {
+      if (AppAnother.userAuth != null) {
+        await FirebaseApi()
+            .chatProfileCollection(id)
+            .doc(AppAnother.userAuth!.uid)
+            .update({'inside chat group': true});
+      }
+    } on PlatformException catch (err) {
+      Get.back();
+      log(err.message.toString());
+
+      CommonWidget.showErrorDialog(ctx);
+    } catch (err) {
+      Get.back();
+
+      CommonWidget.showErrorDialog(ctx);
+    }
+  }
+
+  Future<void> outChatDetailScreen(String id, BuildContext ctx) async {
+    try {
+      if (AppAnother.userAuth != null) {
+        await FirebaseApi()
+            .chatProfileCollection(id)
+            .doc(AppAnother.userAuth!.uid)
+            .update({'inside chat group': false});
+      }
+    } on PlatformException catch (err) {
+      Get.back();
+      log(err.message.toString());
+
+      CommonWidget.showErrorDialog(ctx);
+    } catch (err) {
+      Get.back();
+
+      CommonWidget.showErrorDialog(ctx);
     }
   }
 
@@ -471,21 +521,14 @@ class MessagePartnerController extends GetxController
               .update({'is not seen message': 0});
         }
       } on PlatformException catch (err) {
-        var message = 'An error, try again';
-        if (err.message != null) {
-          message = err.message!;
-        }
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
       } catch (err) {
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(err.toString()),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
@@ -577,21 +620,14 @@ class MessagePartnerController extends GetxController
                 .update({'is not seen message': 0});
           }
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+          log(err.message.toString());
+
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+
+          CommonWidget.showErrorDialog(ctx);
         }
       }
     }
@@ -676,21 +712,14 @@ class MessagePartnerController extends GetxController
                 .update({'is not seen message': 0});
           }
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+          log(err.message.toString());
+
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+
+          CommonWidget.showErrorDialog(ctx);
         }
       }
     }
@@ -953,6 +982,50 @@ class MessagePartnerController extends GetxController
       } else {
         return false;
       }
+    }
+  }
+
+  List<ChatProfileModel> getSearchChatSuggestions(String query) {
+    List<ChatProfileModel> result = [];
+    for (var item in chatProfileUser) {
+      if (item.name.toLowerCase().contains(query.toLowerCase())) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  Future<void> changeStatusSeenSearch(
+      int notseen, String id, BuildContext ctx) async {
+    if (AppAnother.userAuth != null) {
+      FirebaseApi()
+          .chatCollectionPartner(AppAnother.userAuth!.uid, id)
+          .limit(notseen)
+          .orderBy('timestamp', descending: true)
+          .snapshots()
+          .map((event) async {
+        try {
+          for (var item in event.docs) {
+            await FirebaseApi()
+                .chatCollectionPartner(AppAnother.userAuth!.uid, id)
+                .doc(item['id'])
+                .update({'my seen': true});
+            await FirebaseApi()
+                .chatCollection(id, AppAnother.userAuth!.uid)
+                .doc(item['id'])
+                .update({'is seen': true});
+          }
+        } on PlatformException catch (err) {
+          Get.back();
+          log(err.message.toString());
+
+          CommonWidget.showErrorDialog(ctx);
+        } catch (err) {
+          Get.back();
+
+          CommonWidget.showErrorDialog(ctx);
+        }
+      });
     }
   }
 }

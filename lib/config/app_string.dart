@@ -13,10 +13,12 @@ class AppString {
   static const orderProgress = 'orderProgress';
   static const orderCompleted = 'orderCompleted';
   static const menu = 'Menu';
+  static const statusDelivery0 = 'Chờ nhận đơn';
   static const statusDelivery1 = 'Đã nhận đơn hàng';
   static const statusDelivery2 = 'Đang chuẩn bị';
   static const statusDelivery3 = 'Đang trên đường giao đến bạn';
   static const statusDelivery4 = 'Giao hàng thành công';
+  static const statusDelevery5 = 'Giao hàng không thành công';
   static const statusActive = 'Active';
   static const statusCompleted = 'Completed';
   static const statusCancelled = 'Cancelled';
@@ -28,6 +30,15 @@ class AppString {
   static const kitchenSearch = 'Kitchen search';
   static const orderSearch = 'Order search';
   static const messageSearch = 'Message search';
+  static const orderNowSearch = 'Order now search';
+  static const orderHistorySearch = 'Order history search';
+  static const reviewText1 = 'Hoàn hảo';
+  static const reviewText2 = 'Hài lòng';
+  static const reviewText3 = 'Bình thường';
+  static const reviewText4 = 'Tệ';
+  static const reviewText5 = 'Rất tệ';
+  static const kitchenReview = 'review';
+  static const favorite = 'favorite';
   static const List<String> statusDelivery = [
     AppString.statusDelivery1,
     AppString.statusDelivery2,

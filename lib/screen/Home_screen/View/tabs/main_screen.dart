@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
@@ -15,6 +13,7 @@ import 'package:new_ap/screen/Home_screen/widgets/main_widget.dart/categori_widg
 import 'package:new_ap/screen/Home_screen/widgets/main_widget.dart/grid_kitchen.dart';
 import 'package:new_ap/screen/Home_screen/widgets/main_widget.dart/promo_page.dart';
 import '../../../../config/app_dimens.dart';
+import '../../controllers/cart_controller.dart';
 
 // ignore: must_be_immutable
 class MainScreen extends StatelessWidget {
@@ -24,6 +23,7 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: PreferredSize(
         preferredSize: Size(double.infinity, controller.getAppbarHeight),
         child: GetX<MainController>(
@@ -48,7 +48,7 @@ class MainScreen extends StatelessWidget {
                             backgroundImage:
                                 NetworkImage(controller.user.image),
                           ),
-                    backgroundColor: ColorConstants.colorGrey0,
+                    backgroundColor: ColorConstants.colorWhite,
                     actions: [
                       IconButton(
                           onPressed: () {},
@@ -60,6 +60,7 @@ class MainScreen extends StatelessWidget {
                           value: controller.cart.length.toString(),
                           child: IconButton(
                             onPressed: () {
+                              Get.find<CartController>().increaseCountScreen();
                               Get.to(() {
                                 return CartScreen(controller.kitchenModel);
                               });
@@ -84,7 +85,7 @@ class MainScreen extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15))),
                         onPressed: () {
-                          log(MediaQuery.of(context).padding.top.toString());
+                          Get.to(() => SearchKitchenScreen());
                         },
                         child: SizedBox(
                           height: 40,
@@ -109,7 +110,7 @@ class MainScreen extends StatelessWidget {
                             ],
                           ),
                         )),
-                    backgroundColor: ColorConstants.colorGrey0,
+                    backgroundColor: ColorConstants.colorWhite,
                     actions: [
                       IconButton(
                           onPressed: () {},
@@ -121,6 +122,7 @@ class MainScreen extends StatelessWidget {
                           value: controller.cart.length.toString(),
                           child: IconButton(
                             onPressed: () {
+                              Get.find<CartController>().increaseCountScreen();
                               Get.to(() {
                                 return CartScreen(controller.kitchenModel);
                               });
@@ -225,6 +227,7 @@ class MainScreen extends StatelessWidget {
                   ),
                   TextButton(
                       onPressed: () {
+                        Get.find<CartController>().increaseCountScreen();
                         controller.getListQuery('');
                         Get.to(() => KitchenScreen());
                       },

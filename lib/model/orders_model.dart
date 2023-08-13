@@ -18,11 +18,13 @@ class OrderModel {
   late String statusDelivery;
   late String uid;
   late String ship;
-  late String timeOne;
-  late String timeTwo;
-  late String timeThree;
-  late String timeFour;
+  late Timestamp timeOne;
+  late Timestamp timeTwo;
+  late Timestamp timeThree;
+  late Timestamp timeFour;
   late Timestamp timeStamp;
+  late String partnerId;
+  late Timestamp cancelOrder;
   OrderModel(
       {required this.id,
       required this.name,
@@ -42,9 +44,11 @@ class OrderModel {
       required this.promoCode,
       required this.uid,
       required this.quantity,
+      required this.cancelOrder,
       required this.shippingCode,
       required this.status,
       required this.statusDelivery,
+      required this.partnerId,
       required this.url});
   OrderModel.fromJson(Map<String, dynamic> map) {
     id = map['id'];
@@ -57,6 +61,8 @@ class OrderModel {
     timeThree = map['timeThree'];
     timeFour = map['timeFour'];
     kitchenName = map['kitchenName'];
+    partnerId = map['partnerId'];
+    cancelOrder = map['cancel order'];
     quantity = List.from(map['quantity']);
     productId = List.from(map['product']);
     url = List.from(map['url']);
@@ -79,7 +85,9 @@ class OrderModel {
     data['uid'] = uid;
     data['shippingCode'] = shippingCode;
     data['promoCode'] = promoCode;
+    data['cancel order'] = cancelOrder;
     data['status'] = status;
+    data['partnerId'] = partnerId;
     data['status delivery'] = statusDelivery;
     data['reduce'] = reduce;
     data['reduceShip'] = reduceShip;

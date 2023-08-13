@@ -1,6 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_another.dart';
+
+import 'package:new_ap/screen/Home_screen/View/pages/kitchen_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/order_progress_screen.dart';
+import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 
 import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
 
@@ -36,7 +41,10 @@ class ActiveOrder extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(
                                       AppDimens.dimens_8)),
                               backgroundColor: ColorConstants.themeColor),
-                          onPressed: () {},
+                          onPressed: () {
+                            Get.find<MainController>().getListQuery('');
+                            Get.to(() => KitchenScreen());
+                          },
                           child: const Text(
                             'Đặt hàng ngay',
                             style: TextStyle(
@@ -57,7 +65,7 @@ class ActiveOrder extends StatelessWidget {
                         height:
                             controller.getActiveOrder()[index].statusDelivery ==
                                     'Giao hàng thành công'
-                                ? AppDimens.dimens_200
+                                ? AppDimens.dimens_210
                                 : AppDimens.dimens_160,
                         width: width,
                         margin: const EdgeInsets.only(
@@ -71,7 +79,9 @@ class ActiveOrder extends StatelessWidget {
                         child: Column(
                           children: <Widget>[
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Get.to(() => OrderProgressScreen(index));
+                              },
                               child: Column(
                                 children: [
                                   Container(

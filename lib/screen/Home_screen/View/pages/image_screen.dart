@@ -23,6 +23,7 @@ class ImageViewScreen extends StatelessWidget {
         return true;
       },
       child: Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         body: SizedBox(
           height: double.infinity,
           width: double.infinity,
@@ -45,7 +46,6 @@ class ImageViewScreen extends StatelessWidget {
                 bottom: AppDimens.dimens_30,
                 left: AppDimens.dimens_50,
                 width: width - AppDimens.dimens_100,
-                height: AppDimens.dimens_54,
                 child: TextField(
                   controller: controller.messageImageController,
                   decoration: InputDecoration(

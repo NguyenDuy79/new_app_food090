@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/config/app_font.dart';
+import 'package:new_ap/config/app_string.dart';
 import 'package:new_ap/screen/partner_screen/controller/history_order_controller.dart';
 
-import '../../../config/app_dimens.dart';
+import '../../../../config/app_dimens.dart';
 
 // ignore: must_be_immutable
 class OrderCompletedDetailScreen extends StatelessWidget {
@@ -13,6 +15,7 @@ class OrderCompletedDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: AppBar(
         title: const Text(
           'Đơn hàng đã hoàn thành',
@@ -23,7 +26,7 @@ class OrderCompletedDetailScreen extends StatelessWidget {
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: ColorConstants.colorWhite,
         leading: IconButton(
             onPressed: () {
               Get.back();
@@ -269,14 +272,36 @@ class OrderCompletedDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
               ),
-              controller.getWidget(context, 1, Icons.note_alt_outlined,
-                  controller.order[index].timeOne, index),
-              controller.getWidget(context, 2, Icons.soup_kitchen_outlined,
-                  controller.order[index].timeTwo, index),
-              controller.getWidget(context, 3, Icons.delivery_dining_outlined,
-                  controller.order[index].timeThree, index),
-              controller.getWidget(context, 4, Icons.door_back_door_outlined,
-                  controller.order[index].timeFour, index)
+              if (controller.order[index].status == AppString.statusCompleted)
+                controller.getWidget(context, 1, Icons.note_alt_outlined,
+                    controller.order[index].timeOne.toDate().toString(), index),
+              if (controller.order[index].status == AppString.statusCompleted)
+                controller.getWidget(context, 2, Icons.soup_kitchen_outlined,
+                    controller.order[index].timeTwo.toDate().toString(), index),
+              if (controller.order[index].status == AppString.statusCompleted)
+                controller.getWidget(
+                    context,
+                    3,
+                    Icons.delivery_dining_outlined,
+                    controller.order[index].timeThree.toDate().toString(),
+                    index),
+              if (controller.order[index].status == AppString.statusCompleted)
+                controller.getWidget(
+                    context,
+                    4,
+                    Icons.door_back_door_outlined,
+                    controller.order[index].timeFour.toDate().toString(),
+                    index),
+              if (controller.order[index].status == AppString.statusCancelled)
+                Center(
+                  child: Text(
+                    'Đã hủy lúc: ${controller.order[index].cancelOrder.toDate().toString().split(':')[0]}:${controller.order[index].cancelOrder.toDate().toString().split(':')[1]}',
+                    style: const TextStyle(
+                        fontSize: AppDimens.dimens_22,
+                        fontWeight: AppFont.semiBold,
+                        color: ColorConstants.colorBlack),
+                  ),
+                )
             ],
           ),
         ),

@@ -13,11 +13,25 @@ class FirebaseApi {
     return user;
   }
 
+  CollectionReference favoriteKitchenCollection(String id) {
+    return FirebaseFirestore.instance
+        .collection('kitchen')
+        .doc(id)
+        .collection(AppString.favorite);
+  }
+
   CollectionReference cartCollection(String uid) {
     return FirebaseFirestore.instance
         .collection(AppString.users)
         .doc(uid)
         .collection(AppString.cart);
+  }
+
+  CollectionReference favoriteCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.users)
+        .doc(uid)
+        .collection(AppString.favorite);
   }
 
   CollectionReference kitchenSearchCollection(String uid) {
@@ -32,6 +46,20 @@ class FirebaseApi {
         .collection(AppString.users)
         .doc(uid)
         .collection(AppString.orderSearch);
+  }
+
+  CollectionReference orderNowSearchCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.partner)
+        .doc(uid)
+        .collection(AppString.orderNowSearch);
+  }
+
+  CollectionReference orderHistorySearchCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.partner)
+        .doc(uid)
+        .collection(AppString.orderHistorySearch);
   }
 
   CollectionReference chatSearchCollection(String uid) {
@@ -62,11 +90,23 @@ class FirebaseApi {
     return cart.docs;
   }
 
+  Future<List<QueryDocumentSnapshot>> getKitchenReview(String kitchenId) async {
+    var review = await kitchenReviewCollection(kitchenId).get();
+    return review.docs;
+  }
+
   CollectionReference orderCollection(String uid) {
     return FirebaseFirestore.instance
         .collection(AppString.users)
         .doc(uid)
         .collection(AppString.order);
+  }
+
+  CollectionReference reviewCollection(String uid) {
+    return FirebaseFirestore.instance
+        .collection(AppString.users)
+        .doc(uid)
+        .collection(AppString.kitchenReview);
   }
 
   Future<List<QueryDocumentSnapshot>> getOrderFirestore(String uid) async {
@@ -77,6 +117,9 @@ class FirebaseApi {
   final CollectionReference _kitchenCollection =
       FirebaseFirestore.instance.collection(AppString.kitchen);
   CollectionReference get kitchenCollection => _kitchenCollection;
+  CollectionReference kitchenReviewCollection(String id) {
+    return _kitchenCollection.doc(id).collection(AppString.kitchenReview);
+  }
 
   final CollectionReference _promoCodeCollection =
       FirebaseFirestore.instance.collection(AppString.promoCode);

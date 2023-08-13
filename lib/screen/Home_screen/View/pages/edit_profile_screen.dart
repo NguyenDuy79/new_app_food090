@@ -19,6 +19,7 @@ class EditProfile extends StatelessWidget {
         return true;
       },
       child: Scaffold(
+          backgroundColor: ColorConstants.colorWhite,
           appBar: AppBar(
             backgroundColor: ColorConstants.colorWhite,
             elevation: AppDimens.dimens_0,

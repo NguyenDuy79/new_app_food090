@@ -15,6 +15,7 @@ class CategoriesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: AppBar(
         backgroundColor: ColorConstants.colorWhite,
         leading: IconButton(
@@ -30,82 +31,93 @@ class CategoriesScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Padding(
           padding: const EdgeInsets.only(right: AppDimens.dimens_25),
-          child: Expanded(
-              child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: AppDimens.dimens_0,
-                    backgroundColor: ColorConstants.colorGrey2,
-                  ),
-                  onPressed: () {
-                    controller.changeStatusEmpty();
-                    controller.getSuggest(controller.textEditing.text);
-                    //Get.to(() => SearchScreen());
-                  },
-                  child: SizedBox(
-                      height: AppDimens.dimens_40,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          const Icon(
-                            Icons.search,
-                            size: AppDimens.dimens_35,
-                            color: ColorConstants.colorGrey4,
-                          ),
-                          const SizedBox(
-                            width: AppDimens.dimens_20,
-                          ),
-                          controller.textEditing.text == ''
-                              ? const Text('Search Categories',
-                                  style: TextStyle(
-                                      fontSize: AppDimens.dimens_18,
-                                      fontWeight: AppFont.medium,
-                                      color: ColorConstants.colorGrey4))
-                              : Text(
-                                  controller.textEditing.text,
-                                  style: const TextStyle(
-                                      fontSize: AppDimens.dimens_18,
-                                      fontWeight: AppFont.medium,
-                                      color: ColorConstants.colorBlack),
-                                )
-                        ],
-                      )))),
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: AppDimens.dimens_0,
+                backgroundColor: ColorConstants.colorGrey2,
+              ),
+              onPressed: () {
+                controller.changeStatusEmpty();
+                controller.getSuggest(controller.textEditing.text);
+                //Get.to(() => SearchScreen());
+              },
+              child: SizedBox(
+                  height: AppDimens.dimens_40,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      const Icon(
+                        Icons.search,
+                        size: AppDimens.dimens_35,
+                        color: ColorConstants.colorGrey4,
+                      ),
+                      const SizedBox(
+                        width: AppDimens.dimens_20,
+                      ),
+                      controller.textEditing.text == ''
+                          ? const Text('Search Categories',
+                              style: TextStyle(
+                                  fontSize: AppDimens.dimens_18,
+                                  fontWeight: AppFont.medium,
+                                  color: ColorConstants.colorGrey4))
+                          : Text(
+                              controller.textEditing.text,
+                              style: const TextStyle(
+                                  fontSize: AppDimens.dimens_18,
+                                  fontWeight: AppFont.medium,
+                                  color: ColorConstants.colorBlack),
+                            )
+                    ],
+                  ))),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppDimens.dimens_15),
-        child: Expanded(
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 7 / 12,
-                crossAxisSpacing: AppDimens.dimens_20),
-            itemBuilder: ((context, index) {
-              return Column(
-                children: <Widget>[
-                  SizedBox(
-                    width: (width - AppDimens.dimens_20 * 4) / 4,
-                    height: (width - AppDimens.dimens_20 * 4) / 4,
-                    child: CircleAvatar(
-                      backgroundImage: AssetImage(
-                          AppStoragePath.categories[index]['image'] as String),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.dimens_15),
+          child: SizedBox(
+            height: AppStoragePath.categories.length % 4 == 0
+                ? ((width - AppDimens.dimens_20 * 4) / 4 +
+                        AppDimens.dimens_15 +
+                        AppDimens.dimens_40) *
+                    (AppStoragePath.categories.length / 4)
+                : ((width - AppDimens.dimens_20 * 4) / 4 +
+                        AppDimens.dimens_15 +
+                        AppDimens.dimens_40) *
+                    ((AppStoragePath.categories.length ~/ 4 + 1)),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 7 / 12,
+                  crossAxisSpacing: AppDimens.dimens_20),
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: ((context, index) {
+                return Column(
+                  children: <Widget>[
+                    SizedBox(
+                      width: (width - AppDimens.dimens_20 * 4) / 4,
+                      height: (width - AppDimens.dimens_20 * 4) / 4,
+                      child: CircleAvatar(
+                        backgroundImage: AssetImage(AppStoragePath
+                            .categories[index]['image'] as String),
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: AppDimens.dimens_15,
-                    height: AppDimens.dimens_15,
-                  ),
-                  FittedBox(
-                    child: Text(
-                      AppStoragePath.categories[index]['title'] as String,
-                      style: const TextStyle(
-                          fontSize: AppDimens.dimens_18,
-                          fontWeight: AppFont.semiBold),
+                    const SizedBox(
+                      width: AppDimens.dimens_15,
+                      height: AppDimens.dimens_15,
                     ),
-                  )
-                ],
-              );
-            }),
-            itemCount: AppStoragePath.categories.length,
+                    FittedBox(
+                      child: Text(
+                        AppStoragePath.categories[index]['title'] as String,
+                        style: const TextStyle(
+                            fontSize: AppDimens.dimens_18,
+                            fontWeight: AppFont.semiBold),
+                      ),
+                    )
+                  ],
+                );
+              }),
+              itemCount: AppStoragePath.categories.length,
+            ),
           ),
         ),
       ),

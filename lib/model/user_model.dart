@@ -7,6 +7,7 @@ class UserModel {
   late String mobile;
   late bool partner;
   late String userName;
+
   UserModel(
       {required this.id,
       required this.email,
@@ -29,6 +30,7 @@ class UserModel {
     data['image'] = image;
     data['mobile'] = mobile;
     data['userName'] = userName;
+
     data['partner'] = partner;
     return data;
   }
@@ -41,5 +43,14 @@ class SearchModel {
   SearchModel.fromJson(Map<String, dynamic> map) {
     id = map['id'];
     query = map['search value'];
+  }
+}
+
+class Favorite {
+  late String id;
+  late Timestamp timestamp;
+  Favorite.fromJson(Map<String, dynamic> map) {
+    id = map['id'];
+    timestamp = map['timestamp'];
   }
 }

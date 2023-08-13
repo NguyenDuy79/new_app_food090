@@ -13,7 +13,7 @@ class AppAnother {
     return '${content[0].toUpperCase()}${content.substring(1)}';
   }
 
-  Stream<List<CartModel>> cartStream(String uid) {
+  static Stream<List<CartModel>> cartStream(String uid) {
     return FirebaseApi()
         .cartCollection(uid)
         .snapshots()
@@ -28,7 +28,7 @@ class AppAnother {
     });
   }
 
-  Stream<List<PromoCode>> promoCodeStream() {
+  static Stream<List<PromoCode>> promoCodeStream() {
     return FirebaseApi().promoCodeCollection.snapshots().map((event) {
       List<PromoCode> listPromoStream = [];
       for (int i = 0; i < event.docs.length; i++) {
@@ -46,7 +46,7 @@ class AppAnother {
     });
   }
 
-  Stream<List<ShippingPromoCode>> shippingPromoCode() {
+  static Stream<List<ShippingPromoCode>> shippingPromoCode() {
     return FirebaseApi().shippingPromoCodeCollection.snapshots().map((event) {
       List<ShippingPromoCode> listShippingPromoCode = [];
       for (int i = 0; i < event.docs.length; i++) {
@@ -56,5 +56,9 @@ class AppAnother {
 
       return listShippingPromoCode;
     });
+  }
+
+  static String capitalizefirstletter(String value) {
+    return value[0].toUpperCase() + value.substring(1).toLowerCase();
   }
 }

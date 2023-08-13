@@ -19,6 +19,7 @@ class MessageScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+          backgroundColor: ColorConstants.colorWhite,
           appBar: AppBar(
             title: const Text(
               'Message',
@@ -27,7 +28,7 @@ class MessageScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: ColorConstants.colorBlack),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: ColorConstants.colorWhite,
             automaticallyImplyLeading: false,
             actions: [
               IconButton(
@@ -101,22 +102,24 @@ class CustomSearch extends SearchDelegate {
                 controller.limit));
             controller.chatProfile.bindStream(controller.getChatGroupProfile(
                 controller.getSearchChatSuggestions(query)[index].id));
-            Get.to(() => const ChatDetailScreen());
+            Get.to(() => ChatDetailScreen());
             controller.getChatDetailScreen(
-                controller.getSearchChatSuggestions(query)[index].id);
+                controller.getSearchChatSuggestions(query)[index].id, context);
 
             if (controller
                     .getSearchChatSuggestions(query)[index]
                     .myNotSeenMessage >
                 0) {
               controller.changeNotSeenValue(
-                  controller.getSearchChatSuggestions(query)[index].id);
+                  controller.getSearchChatSuggestions(query)[index].id,
+                  context);
 
               controller.changeStatusSeenSearch(
                   controller
                       .getSearchChatSuggestions(query)[index]
                       .myNotSeenMessage,
-                  controller.getSearchChatSuggestions(query)[index].id);
+                  controller.getSearchChatSuggestions(query)[index].id,
+                  context);
             }
           },
           child: ListTile(
@@ -151,22 +154,24 @@ class CustomSearch extends SearchDelegate {
                 controller.limit));
             controller.chatProfile.bindStream(controller.getChatGroupProfile(
                 controller.getSearchChatSuggestions(query)[index].id));
-            Get.to(() => const ChatDetailScreen());
+            Get.to(() => ChatDetailScreen());
             controller.getChatDetailScreen(
-                controller.getSearchChatSuggestions(query)[index].id);
+                controller.getSearchChatSuggestions(query)[index].id, context);
 
             if (controller
                     .getSearchChatSuggestions(query)[index]
                     .myNotSeenMessage >
                 0) {
               controller.changeNotSeenValue(
-                  controller.getSearchChatSuggestions(query)[index].id);
+                  controller.getSearchChatSuggestions(query)[index].id,
+                  context);
 
               controller.changeStatusSeenSearch(
                   controller
                       .getSearchChatSuggestions(query)[index]
                       .myNotSeenMessage,
-                  controller.getSearchChatSuggestions(query)[index].id);
+                  controller.getSearchChatSuggestions(query)[index].id,
+                  context);
             }
           },
           child: ListTile(

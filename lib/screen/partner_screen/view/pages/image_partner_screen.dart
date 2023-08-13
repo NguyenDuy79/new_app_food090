@@ -4,7 +4,7 @@ import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/app_dimens.dart';
 import 'package:new_ap/model/chat_model.dart';
 
-import '../controller/message_partner_controller.dart';
+import '../../controller/message_partner_controller.dart';
 
 class ImageViewPartnerScreen extends StatelessWidget {
   ImageViewPartnerScreen(this.id, this.type, this.notSeen, this.insideChatGroup,
@@ -24,6 +24,7 @@ class ImageViewPartnerScreen extends StatelessWidget {
         return true;
       },
       child: Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         body: SizedBox(
           height: double.infinity,
           width: double.infinity,

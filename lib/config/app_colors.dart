@@ -29,4 +29,5 @@ class ColorConstants {
   static const colorPink = Colors.pink;
   static const colorRed1 = Colors.red;
   static const colorRed2 = Colors.redAccent;
+  static const charcoalGreen = Color(0xff1e291d);
 }

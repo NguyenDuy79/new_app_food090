@@ -6,6 +6,7 @@ import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/model/kitchen_model.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/kitchen_menu.dart';
 import '../../../../config/app_dimens.dart';
+import '../../controllers/cart_controller.dart';
 
 class GirdKitchen extends GetView<MainController> {
   const GirdKitchen({super.key});
@@ -59,6 +60,7 @@ Widget kitChenItem(
   final intoductItem = intoduct.split(',');
   return GestureDetector(
     onTap: () {
+      Get.find<CartController>().increaseCountScreen();
       Get.to(() => KitchenMenu(kitchen));
     },
     child: Card(

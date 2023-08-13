@@ -9,7 +9,7 @@ import 'package:new_ap/screen/Home_screen/binding/binding.dart';
 import 'package:new_ap/screen/Login_screen/binding/login_binding.dart';
 import 'package:new_ap/screen/Login_screen/view/auth_screen.dart';
 import 'package:new_ap/screen/partner_screen/binding/binding.dart';
-import 'package:new_ap/screen/partner_screen/view/partner_screen.dart';
+import 'package:new_ap/screen/partner_screen/view/tabs/partner_screen.dart';
 import 'package:new_ap/screen/splash/binding/splash_binding.dart';
 import 'package:new_ap/screen/splash/view/splash_screen.dart';
 

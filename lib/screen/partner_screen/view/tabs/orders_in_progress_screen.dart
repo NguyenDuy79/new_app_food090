@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/common_app/common_widget.dart';
 import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/config/app_storage_path.dart';
 import 'package:new_ap/screen/partner_screen/controller/order_now_controller.dart';
 
-import '../../../config/app_dimens.dart';
+import '../../../../config/app_dimens.dart';
 
 // ignore: must_be_immutable
 class OrdersInProgressScreen extends StatelessWidget {
@@ -13,7 +14,9 @@ class OrdersInProgressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         appBar: AppBar(
           elevation: AppDimens.dimens_0,
           backgroundColor: ColorConstants.colorWhite,
@@ -49,11 +52,9 @@ class OrdersInProgressScreen extends StatelessWidget {
           child: GetX<OrderNowController>(
             init: Get.find<OrderNowController>(),
             builder: (controller) => controller.orderActive.isEmpty
-                ? const Center(
-                    child: Text('Hiện chưa nhận đơn hàng nào',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: AppDimens.dimens_25)),
+                ? SizedBox(
+                    height: height * 0.6,
+                    child: Center(child: Image.asset(AppStoragePath.empty)),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,22 +63,13 @@ class OrdersInProgressScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: AppDimens.dimens_20,
                             vertical: AppDimens.dimens_10),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppDimens.dimens_10)),
-                          color: ColorConstants.colorGrey1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppDimens.dimens_10),
-                            child: FittedBox(
-                              child: Text(
-                                'ID:${controller.orderActive[0].id}',
-                                style: const TextStyle(
-                                    fontSize: AppDimens.dimens_20,
-                                    fontWeight: FontWeight.bold,
-                                    color: ColorConstants.colorBlack),
-                              ),
-                            ),
+                        child: FittedBox(
+                          child: Text(
+                            'ID:${controller.orderActive[0].id}',
+                            style: const TextStyle(
+                                fontSize: AppDimens.dimens_20,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.colorBlack),
                           ),
                         ),
                       ),
@@ -295,39 +287,47 @@ class OrdersInProgressScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                      CommonWidget.getWidget(
-                          controller.status.value,
-                          context,
-                          1,
-                          Icons.note_alt_outlined,
-                          controller.orderActive[0].timeOne,
-                          controller.url),
-                      CommonWidget.getWidget(
-                          controller.status.value,
-                          context,
-                          2,
-                          Icons.soup_kitchen_outlined,
-                          controller.orderActive[0].timeTwo,
-                          controller.url),
-                      CommonWidget.getWidget(
-                          controller.status.value,
-                          context,
-                          3,
-                          Icons.soup_kitchen_outlined,
-                          controller.orderActive[0].timeThree,
-                          controller.url),
-                      CommonWidget.getWidget(
-                          controller.status.value,
-                          context,
-                          4,
-                          Icons.soup_kitchen_outlined,
-                          controller.orderActive[0].timeFour,
-                          controller.url),
+                      if (controller.status.value >= 1)
+                        CommonWidget.getWidget(
+                            context,
+                            1,
+                            Icons.note_alt_outlined,
+                            controller.orderActive[0].timeOne
+                                .toDate()
+                                .toString(),
+                            controller.url),
+                      if (controller.status.value >= 2)
+                        CommonWidget.getWidget(
+                            context,
+                            2,
+                            Icons.soup_kitchen_outlined,
+                            controller.orderActive[0].timeTwo
+                                .toDate()
+                                .toString(),
+                            controller.url),
+                      if (controller.status.value >= 3)
+                        CommonWidget.getWidget(
+                            context,
+                            3,
+                            Icons.soup_kitchen_outlined,
+                            controller.orderActive[0].timeThree
+                                .toDate()
+                                .toString(),
+                            controller.url),
+                      if (controller.status.value >= 4)
+                        CommonWidget.getWidget(
+                            context,
+                            4,
+                            Icons.soup_kitchen_outlined,
+                            controller.orderActive[0].timeFour
+                                .toDate()
+                                .toString(),
+                            controller.url),
                     ],
                   ),
           ),
         ),
-        bottomNavigationBar: Obx(() => controller.status.value != 0
+        bottomNavigationBar: Obx(() => controller.orderActive.isNotEmpty
             ? Container(
                 height: AppDimens.dimens_50,
                 margin: const EdgeInsets.symmetric(
@@ -354,7 +354,7 @@ class OrdersInProgressScreen extends StatelessWidget {
               )
             : const FittedBox(
                 child: Text(
-                  'Hãy nhận đơn hàng rồi quay lại',
+                  'Bạn chưa nhận đơn hàng nào',
                   style: TextStyle(
                       fontSize: AppDimens.dimens_20,
                       fontWeight: FontWeight.bold),

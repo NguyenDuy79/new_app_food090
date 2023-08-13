@@ -8,7 +8,7 @@ import 'package:new_ap/config/app_storage_path.dart';
 import 'package:new_ap/model/chat_model.dart';
 
 import 'package:new_ap/screen/partner_screen/controller/message_partner_controller.dart';
-import 'package:new_ap/screen/partner_screen/view/image_partner_screen.dart';
+import 'package:new_ap/screen/partner_screen/view/pages/image_partner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../config/app_dimens.dart';
 

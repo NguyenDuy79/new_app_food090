@@ -5,12 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:new_ap/common_app/common_widget.dart';
 import 'package:new_ap/config/app_another.dart';
 import 'package:new_ap/config/firebase_api.dart';
 import 'package:new_ap/model/cart_model.dart';
 import 'package:new_ap/model/orders_model.dart';
-import '../../../config/app_colors.dart';
 import '../../../model/promo_model.dart';
+import 'home_controller.dart';
 
 class CartController extends GetxController {
   final Rx<List<CartModel>> _cart = Rx<List<CartModel>>([]);
@@ -40,14 +41,17 @@ class CartController extends GetxController {
   RxInt ship = 0.obs;
   RxInt reduceShip = 0.obs;
   RxDouble reduce = (0.0).obs;
+  final RxBool _isLoading = false.obs;
+  bool get isLoading => _isLoading.value;
+  int countScreen = 0;
 
   @override
   void onInit() {
     if (FirebaseAuth.instance.currentUser != null) {
       _cart.bindStream(
-          AppAnother().cartStream(FirebaseAuth.instance.currentUser!.uid));
-      _promoCode.bindStream(AppAnother().promoCodeStream());
-      _shippingPromoCode.bindStream(AppAnother().shippingPromoCode());
+          AppAnother.cartStream(FirebaseAuth.instance.currentUser!.uid));
+      _promoCode.bindStream(AppAnother.promoCodeStream());
+      _shippingPromoCode.bindStream(AppAnother.shippingPromoCode());
     }
 
     super.onInit();
@@ -84,21 +88,33 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> updateQuantity(CartModel cartItem, int quantity) async {
+  Future<void> updateQuantity(
+      CartModel cartItem, int quantity, BuildContext ctx) async {
     cartItem.quantity = quantity;
     log(cartItem.quantity.toString());
-    await FirebaseApi()
-        .cartCollection(FirebaseAuth.instance.currentUser!.uid)
-        .doc(cartItem.id)
-        .update({'quantity': quantity}).then((value) {
-      for (int i = 0; i < cartOrder.length; i++) {
-        if (cartOrder[i].id == cartItem.id) {
-          cartOrder.removeWhere((element) => element.id == cartItem.id);
-          cartOrder.add(cartItem);
-          getCount();
+    try {
+      await FirebaseApi()
+          .cartCollection(FirebaseAuth.instance.currentUser!.uid)
+          .doc(cartItem.id)
+          .update({'quantity': quantity}).then((value) {
+        for (int i = 0; i < cartOrder.length; i++) {
+          if (cartOrder[i].id == cartItem.id) {
+            cartOrder.removeWhere((element) => element.id == cartItem.id);
+            cartOrder.add(cartItem);
+            getCount();
+          }
         }
-      }
-    });
+      });
+    } on PlatformException catch (err) {
+      _isLoading.value = false;
+      Get.back();
+      log(err.message.toString());
+      CommonWidget.showErrorDialog(ctx);
+    } catch (err) {
+      _isLoading.value = false;
+      Get.back();
+      CommonWidget.showErrorDialog(ctx);
+    }
   }
 
   String getNewString(String string) {
@@ -191,8 +207,10 @@ class CartController extends GetxController {
         }
       } else {
         reduce.value = 0;
-        if (checkPromo.value || checkShipping.value) {
+        if (checkShipping.value || checkPromo.value) {
           error.value = true;
+        } else {
+          error.value = false;
         }
       }
     } else {
@@ -205,23 +223,32 @@ class CartController extends GetxController {
   }
 
   getApplyShipping() {
-    if (selectShippingPromoCode.id != '') {
-      checkShipping.value = true;
-      if (count.value >= selectShippingPromoCode.applyPrice) {
-        if (selectShippingPromoCode.maximum == 0) {
-          reduceShip.value = ship.value;
-        } else {
-          if (selectShippingPromoCode.maximum < ship.value) {
-            reduceShip.value = selectShippingPromoCode.maximum;
-          } else {
+    if (count.value != 0) {
+      if (selectShippingPromoCode.id != '') {
+        checkShipping.value = true;
+        if (count.value >= selectShippingPromoCode.applyPrice) {
+          if (selectShippingPromoCode.maximum == 0) {
             reduceShip.value = ship.value;
+          } else {
+            if (selectShippingPromoCode.maximum < ship.value) {
+              reduceShip.value = selectShippingPromoCode.maximum;
+            } else {
+              reduceShip.value = ship.value;
+            }
           }
+        } else {
+          reduceShip = 0.obs;
         }
       } else {
-        reduceShip = 0.obs;
+        checkShipping.value = false;
       }
     } else {
-      checkShipping.value = false;
+      reduceShip.value = 0;
+      if (checkShipping.value || checkPromo.value) {
+        error.value = true;
+      } else {
+        error.value = false;
+      }
     }
   }
 
@@ -238,7 +265,7 @@ class CartController extends GetxController {
   Future<void> orders(BuildContext ctx) async {
     DateTime dateTime = DateTime.now();
     Timestamp timestamp = Timestamp.now();
-
+    Timestamp timestamp0 = Timestamp(0, 0);
     List<String> product = [];
     List<String> name = [];
     List<String> url = [];
@@ -255,12 +282,14 @@ class CartController extends GetxController {
     OrderModel newOrder = OrderModel(
         id: dateTime.toString(),
         name: name,
+        partnerId: '',
         timeStamp: timestamp,
         ship: ship.value.toString(),
-        timeOne: '',
-        timeTwo: '',
-        timeThree: '',
-        timeFour: '',
+        timeOne: timestamp0,
+        timeTwo: timestamp0,
+        timeThree: timestamp0,
+        timeFour: timestamp0,
+        cancelOrder: timestamp0,
         productId: product,
         price: (count.value + ship.value - reduce.toInt() - reduceShip.value),
         reduce: reduce.value.toString(),
@@ -279,6 +308,8 @@ class CartController extends GetxController {
     Map<String, List> getPrice = {'productPrice': price};
     if (AppAnother.userAuth != null) {
       try {
+        _isLoading.value = true;
+        CommonWidget.showDialogLoading(ctx);
         await FirebaseApi()
             .orderCollection(AppAnother.userAuth!.uid)
             .doc(dateTime.toString())
@@ -308,22 +339,30 @@ class CartController extends GetxController {
               .doc(dateTime.toString())
               .update(getPrice);
         }).catchError((e) => throw e);
-      } on PlatformException catch (err) {
-        var message = 'An error, try again';
-        if (err.message != null) {
-          message = err.message!;
+        _isLoading.value = false;
+        if (!isLoading) {
+          Get.back();
         }
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: ColorConstants.colorRed1,
-        ));
+
+        Get.find<HomeController>().setStateSelectedValue(1);
+        for (int i = 0; i < countScreen; i++) {
+          Get.back();
+        }
+        // ignore: use_build_context_synchronously
+        CommonWidget.showDialogSuccess(ctx);
+        resetCountScreen();
+        deleteCartOrder().then((value) {
+          setValue();
+        });
+      } on PlatformException catch (err) {
+        _isLoading.value = false;
+        Get.back();
+        log(err.message.toString());
+        CommonWidget.showErrorDialog(ctx);
       } catch (err) {
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(err.toString()),
-          backgroundColor: ColorConstants.colorRed1,
-        ));
+        _isLoading.value = false;
+        Get.back();
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
@@ -336,6 +375,7 @@ class CartController extends GetxController {
     selectIndexPromo = -1;
     reduce.value = 0;
     reduceShip.value = 0;
+    error.value = false;
     cartOrder = [];
     checkPromo.value = false;
     checkShipping.value = false;
@@ -343,5 +383,17 @@ class CartController extends GetxController {
         ShippingPromoCode(id: '', applyPrice: 0, maximum: 0);
     selectPromoCode = PromoCode(
         id: '', applyPrice: 0, maximum: 0, reducePercent: 0, reduceNumber: 0);
+  }
+
+  reduceCountScrenn() {
+    countScreen--;
+  }
+
+  resetCountScreen() {
+    countScreen = 0;
+  }
+
+  increaseCountScreen() {
+    countScreen++;
   }
 }

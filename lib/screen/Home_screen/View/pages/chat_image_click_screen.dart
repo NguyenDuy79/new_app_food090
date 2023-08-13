@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/screen/Home_screen/controllers/message_controller.dart';
 
@@ -83,6 +84,7 @@ class _ChatImageClickScreenState extends State<ChatImageClickScreen> {
                           tag: controller.listImage[index],
                           child: Image.network(
                             controller.listImage[index],
+                            fit: BoxFit.contain,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
                               return const Center(
@@ -111,6 +113,7 @@ class _ChatImageClickScreenState extends State<ChatImageClickScreen> {
                       }
                     },
                     child: Scaffold(
+                      backgroundColor: ColorConstants.colorWhite,
                       appBar: AppBar(
                         backgroundColor: ColorConstants.colorWhite,
                         elevation: 0,
@@ -183,6 +186,7 @@ class _ChatImageClickScreenState extends State<ChatImageClickScreen> {
                               tag: controller.listImage[index],
                               child: Image.network(
                                 controller.listImage[index],
+                                fit: BoxFit.contain,
                                 loadingBuilder:
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;

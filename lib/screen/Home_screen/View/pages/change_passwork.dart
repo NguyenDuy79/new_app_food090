@@ -13,6 +13,7 @@ class ChangePassWord extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,

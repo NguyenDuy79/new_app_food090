@@ -3,10 +3,14 @@ import 'package:get/get.dart';
 import 'package:new_ap/config/app_another.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/app_font.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/page_review.dart';
 import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/order_done_detail.dart';
 
 import '../../../../config/app_dimens.dart';
+import '../../../../config/app_storage_path.dart';
+import '../../View/pages/cart_screen.dart';
+import '../../controllers/main_controller.dart';
 
 class CompletedOrder extends StatelessWidget {
   const CompletedOrder(this.height, this.width, {super.key});
@@ -19,11 +23,12 @@ class CompletedOrder extends StatelessWidget {
       init: Get.find<OrderController>(),
       builder: (controller) {
         return controller.getCompletedOrder().isEmpty
-            ? const Center(
-                child: Text(
-                'Bạn chưa hoàn thành đơn hàng nào',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: AppDimens.dimens_25),
+            ? Center(
+                child: Center(
+                child: SizedBox(
+                  height: height * 0.6,
+                  child: Image.asset(AppStoragePath.empty),
+                ),
               ))
             : PageStorage(
                 bucket: AppAnother.pageBucket,
@@ -46,8 +51,11 @@ class CompletedOrder extends StatelessWidget {
                           children: <Widget>[
                             GestureDetector(
                               onTap: () {
-                                Get.to(() => OrderDoneDetail(
-                                    controller.getCompletedOrder()[index]));
+                                Get.to(
+                                  () => OrderDoneDetail(
+                                      controller.getCompletedOrder()[index],
+                                      controller.imageUrl[index]),
+                                );
                               },
                               child: Column(
                                 children: [
@@ -198,37 +206,52 @@ class CompletedOrder extends StatelessWidget {
                                   horizontal: AppDimens.dimens_20,
                                   vertical: AppDimens.dimens_10),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: !controller.reviewDone[index]
+                                    ? MainAxisAlignment.spaceBetween
+                                    : MainAxisAlignment.end,
                                 children: <Widget>[
-                                  SizedBox(
-                                    height: AppDimens.dimens_35,
-                                    width: AppDimens.dimens_150,
-                                    child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            shape: RoundedRectangleBorder(
-                                                side: const BorderSide(
-                                                    width: AppDimens.dimens_2,
-                                                    color: ColorConstants
-                                                        .themeColor),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        AppDimens.dimens_15)),
-                                            backgroundColor:
-                                                ColorConstants.colorWhite),
-                                        onPressed: () {
-                                          controller.setStateShipDelivery(
-                                              controller
-                                                  .getCompletedOrder()[index]
-                                                  .id);
-                                        },
-                                        child: const Text(
-                                          'Đánh giá',
-                                          style: TextStyle(
-                                              fontSize: AppDimens.dimens_16,
-                                              color: ColorConstants.themeColor),
-                                        )),
-                                  ),
+                                  if (!controller.reviewDone[index])
+                                    SizedBox(
+                                      height: AppDimens.dimens_35,
+                                      width: AppDimens.dimens_150,
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(
+                                                  side: const BorderSide(
+                                                      width: AppDimens.dimens_2,
+                                                      color: ColorConstants
+                                                          .themeColor),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          AppDimens.dimens_15)),
+                                              backgroundColor:
+                                                  ColorConstants.colorWhite),
+                                          onPressed: () {
+                                            Get.to(() => ReviewPage(
+                                                controller
+                                                    .getCompletedOrder()[index]
+                                                    .kitchenId,
+                                                controller
+                                                    .getCompletedOrder()[index]
+                                                    .name,
+                                                controller
+                                                    .getCompletedOrder()[index]
+                                                    .quantity,
+                                                controller
+                                                    .getCompletedOrder()[index]
+                                                    .kitchenName,
+                                                controller
+                                                    .getCompletedOrder()[index]
+                                                    .id));
+                                          },
+                                          child: const Text(
+                                            'Đánh giá',
+                                            style: TextStyle(
+                                                fontSize: AppDimens.dimens_16,
+                                                color:
+                                                    ColorConstants.themeColor),
+                                          )),
+                                    ),
                                   SizedBox(
                                     height: AppDimens.dimens_30,
                                     width: AppDimens.dimens_150,
@@ -240,11 +263,17 @@ class CompletedOrder extends StatelessWidget {
                                                         AppDimens.dimens_15)),
                                             backgroundColor:
                                                 Theme.of(context).primaryColor),
-                                        onPressed: () {
-                                          controller.setStateShipDelivery(
+                                        onPressed: () async {
+                                          await controller.orderAgain(
                                               controller
-                                                  .getCompletedOrder()[index]
-                                                  .id);
+                                                  .getCompletedOrder()[index],
+                                              context);
+
+                                          Get.back();
+                                          Get.back();
+                                          Get.to(() => CartScreen(
+                                              Get.find<MainController>()
+                                                  .kitchenModel));
                                         },
                                         child: const Text(
                                           'Mua lại',

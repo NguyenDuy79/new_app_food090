@@ -2,26 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_another.dart';
 import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/config/app_storage_path.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/order_cancelled_detail_screen.dart';
 import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
-
 import '../../../../config/app_dimens.dart';
 import '../../../../config/app_font.dart';
+import '../../View/pages/cart_screen.dart';
+import '../../controllers/main_controller.dart';
 
 class CancelledOrder extends StatelessWidget {
   const CancelledOrder({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return GetX<OrderController>(
       init: Get.find<OrderController>(),
       builder: (controller) {
-        return controller.getCompletedOrder().isEmpty
-            ? const Center(
-                child: Text(
-                'Bạn chưa hủy đơn hàng nào',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: AppDimens.dimens_25),
-              ))
+        return controller.getCancelledOrder().isEmpty
+            ? Center(
+                child: SizedBox(
+                  height: height * 0.6,
+                  child: Image.asset(AppStoragePath.empty),
+                ),
+              )
             : PageStorage(
                 bucket: AppAnother.pageBucket,
                 child: ListView.builder(
@@ -39,7 +43,9 @@ class CancelledOrder extends StatelessWidget {
                         child: Column(
                           children: <Widget>[
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Get.to(() => OrderCancelledDetailScreen(index));
+                              },
                               child: Column(
                                 children: [
                                   Container(
@@ -206,7 +212,17 @@ class CancelledOrder extends StatelessWidget {
                                                         AppDimens.dimens_15)),
                                             backgroundColor:
                                                 ColorConstants.colorWhite),
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          await controller.orderAgain(
+                                              controller
+                                                  .getCancelledOrder()[index],
+                                              context);
+                                          Get.back();
+                                          Get.back();
+                                          Get.to(() => CartScreen(
+                                              Get.find<MainController>()
+                                                  .kitchenModel));
+                                        },
                                         child: const Text(
                                           'Mua lại',
                                           style: TextStyle(

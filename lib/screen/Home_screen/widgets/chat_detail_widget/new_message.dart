@@ -1,4 +1,5 @@
-import 'dart:developer';
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,7 +9,9 @@ import 'package:new_ap/config/app_storage_path.dart';
 import 'package:new_ap/model/chat_model.dart';
 
 import 'package:new_ap/screen/Home_screen/View/pages/image_screen.dart';
+
 import 'package:permission_handler/permission_handler.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 import '../../../../config/app_dimens.dart';
 import '../../controllers/message_controller.dart';
@@ -24,8 +27,10 @@ class NewMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
+    double paddingTop = MediaQuery.of(context).padding.top;
+
     return Obx(() => SizedBox(
-          height: controller.visibilitySticker ? 250 : 55,
           child: Column(
             children: <Widget>[
               controller.recording.value
@@ -124,83 +129,117 @@ class NewMessage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          SizedBox(
-                            width: AppDimens.dimens_40,
-                            child: IconButton(
-                              onPressed: () {
-                                controller.focusNode.unfocus();
-                                controller.focusNode.canRequestFocus;
-                                controller.visibilityStickerWidget();
-                              },
-                              icon: const Icon(
-                                Icons.sentiment_satisfied_alt_sharp,
-                                color: ColorConstants.themeColor,
+                          if (controller.isExtend)
+                            SizedBox(
+                              width: AppDimens.dimens_40,
+                              child: IconButton(
+                                onPressed: () {
+                                  controller.getFalseExtend();
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: ColorConstants.themeColor,
+                                ),
+                                padding:
+                                    const EdgeInsets.all(AppDimens.dimens_0),
                               ),
-                              padding: const EdgeInsets.all(AppDimens.dimens_0),
                             ),
-                          ),
-                          SizedBox(
-                            width: 30,
-                            child: IconButton(
+                          if (!controller.isExtend)
+                            SizedBox(
+                              width: AppDimens.dimens_40,
+                              child: IconButton(
                                 onPressed: () {
-                                  controller.takePictureCamera().then((value) {
-                                    if (controller.storeImage == null) {
-                                      return;
-                                    } else {
-                                      Get.to(() => ImageViewScreen(
-                                          isNotSeen,
-                                          id,
-                                          TypeMessage.image,
-                                          insideChatGroup));
-                                    }
-                                  });
-                                },
-                                icon: const Icon(
-                                  Icons.camera_alt,
-                                  color: ColorConstants.themeColor,
-                                ),
-                                padding:
-                                    const EdgeInsets.all(AppDimens.dimens_0)),
-                          ),
-                          SizedBox(
-                            width: AppDimens.dimens_40,
-                            child: IconButton(
-                                onPressed: () {
-                                  controller.takePictureGallery().then((value) {
-                                    controller.submitMultiImage(id, context,
-                                        isNotSeen, insideChatGroup);
-                                    log(controller.imageFileList.length
-                                        .toString());
-                                  });
-                                },
-                                icon: const Icon(
-                                  Icons.photo,
-                                  color: ColorConstants.themeColor,
-                                ),
-                                padding:
-                                    const EdgeInsets.all(AppDimens.dimens_0)),
-                          ),
-                          SizedBox(
-                            width: AppDimens.dimens_30,
-                            child: IconButton(
-                                onPressed: () async {
-                                  final status =
-                                      await Permission.microphone.request();
-                                  if (status != PermissionStatus.granted) {
-                                    return;
+                                  controller.focusNode.unfocus();
+                                  controller.focusNode.canRequestFocus;
+                                  if (controller.visibilitySticker) {
+                                    controller.getFalseShowImagePicker();
                                   } else {
-                                    if (controller.recording.value == false) {
-                                      controller.start();
-                                    }
+                                    controller.getTrueVisibility();
                                   }
                                 },
                                 icon: const Icon(
-                                  Icons.mic,
+                                  Icons.sentiment_satisfied_alt_sharp,
                                   color: ColorConstants.themeColor,
                                 ),
-                                padding: const EdgeInsets.only(
-                                    right: AppDimens.dimens_5)),
-                          ),
+                                padding:
+                                    const EdgeInsets.all(AppDimens.dimens_0),
+                              ),
+                            ),
+                          if (!controller.isExtend)
+                            SizedBox(
+                              width: 30,
+                              child: IconButton(
+                                  onPressed: () {
+                                    controller.getFalseVisibility();
+                                    controller
+                                        .takePictureCamera()
+                                        .then((value) {
+                                      if (controller.storeImage == null) {
+                                        return;
+                                      } else {
+                                        Get.to(() => ImageViewScreen(
+                                            isNotSeen,
+                                            id,
+                                            TypeMessage.image,
+                                            insideChatGroup));
+                                      }
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.camera_alt,
+                                    color: ColorConstants.themeColor,
+                                  ),
+                                  padding:
+                                      const EdgeInsets.all(AppDimens.dimens_0)),
+                            ),
+                          // is here
+                          if (!controller.isExtend)
+                            SizedBox(
+                              width: AppDimens.dimens_40,
+                              child: IconButton(
+                                  onPressed: () {
+                                    controller.focusNode.unfocus();
+                                    controller.focusNode.canRequestFocus;
+                                    controller.getFalseVisibility();
+                                    controller.getAllData(RequestType.common);
+                                    controller.showImagePicker(
+                                        context,
+                                        height,
+                                        paddingTop,
+                                        id,
+                                        isNotSeen,
+                                        insideChatGroup);
+                                  },
+                                  icon: const Icon(
+                                    Icons.photo,
+                                    color: ColorConstants.themeColor,
+                                  ),
+                                  padding:
+                                      const EdgeInsets.all(AppDimens.dimens_0)),
+                            ),
+                          if (!controller.isExtend)
+                            SizedBox(
+                              width: AppDimens.dimens_30,
+                              child: IconButton(
+                                  onPressed: () async {
+                                    controller.getFalseVisibility();
+                                    final status =
+                                        await Permission.microphone.request();
+                                    if (status != PermissionStatus.granted) {
+                                      return;
+                                    } else {
+                                      if (controller.recording.value == false) {
+                                        controller.start();
+                                      }
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    Icons.mic,
+                                    color: ColorConstants.themeColor,
+                                  ),
+                                  padding: const EdgeInsets.only(
+                                      right: AppDimens.dimens_5)),
+                            ),
                           Expanded(
                             child: TextField(
                               controller: controller.messageController,
@@ -224,15 +263,36 @@ class NewMessage extends StatelessWidget {
                                 fillColor: ColorConstants.colorGrey2,
                               ),
                               focusNode: controller.focusNode,
+                              autofocus: true,
                               onChanged: (value) {
-                                controller.checkEmtyTextField(value);
+                                controller.checkEmtyTextField(value.trim());
+                                controller.getTrueExtend();
+                                Timer(const Duration(seconds: 5), () {
+                                  if (controller.messageController.text == '') {
+                                    controller.getFalseExtend();
+                                  }
+                                });
                               },
+                              style: const TextStyle(
+                                  fontSize: AppDimens.dimens_19),
+                              onTap: () {
+                                controller.getTrueExtend();
+                                controller.getFalseVisibility();
+                                Timer(const Duration(seconds: 5), () {
+                                  if (controller.messageController.text == '') {
+                                    controller.getFalseExtend();
+                                  }
+                                });
+                              },
+                              maxLines: null,
                               onSubmitted: (_) {
                                 if (controller.checkEmty == true) {
                                   controller.submitNewMessage(
                                       id,
                                       context,
-                                      controller.messageController.text,
+                                      controller.messageController.text
+                                          .trim()
+                                          .replaceAll('\n', ''),
                                       TypeMessage.text,
                                       isNotSeen,
                                       insideChatGroup);
@@ -240,14 +300,14 @@ class NewMessage extends StatelessWidget {
                               },
                             ),
                           ),
-                          Obx(() {
-                            if (controller.checkEmty == true) {
-                              return IconButton(
+                          controller.checkEmty == true
+                              ? IconButton(
                                   onPressed: () {
                                     controller.submitNewMessage(
                                         id,
                                         context,
-                                        controller.messageController.text,
+                                        controller.messageController.text
+                                            .trim(),
                                         TypeMessage.text,
                                         isNotSeen,
                                         insideChatGroup);
@@ -256,41 +316,44 @@ class NewMessage extends StatelessWidget {
                                     Icons.send,
                                     size: AppDimens.dimens_30,
                                     color: ColorConstants.themeColor,
-                                  ));
-                            } else {
-                              return SizedBox(
-                                width: 35,
-                                height: 35,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: AppDimens.dimens_5),
-                                        elevation: 0,
-                                        backgroundColor:
-                                            ColorConstants.colorGrey0),
-                                    onPressed: () {
-                                      controller.submitNewMessage(
-                                          id,
-                                          context,
-                                          'like',
-                                          TypeMessage.sticker,
-                                          isNotSeen,
-                                          insideChatGroup);
-                                    },
-                                    child: Image.asset(
-                                      AppStoragePath.like,
-                                    )),
-                              );
-                            }
-                          })
+                                  ))
+                              : SizedBox(
+                                  width: 35,
+                                  height: 35,
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: AppDimens.dimens_5),
+                                          elevation: 0,
+                                          backgroundColor:
+                                              ColorConstants.colorGrey0),
+                                      onPressed: () {
+                                        controller.submitNewMessage(
+                                            id,
+                                            context,
+                                            'like',
+                                            TypeMessage.sticker,
+                                            isNotSeen,
+                                            insideChatGroup);
+                                      },
+                                      child: Image.asset(
+                                        AppStoragePath.like,
+                                      )),
+                                ),
                         ],
                       ),
                     ),
+              if (controller.isShowImage)
+                SizedBox(
+                  height: controller.heightSheet < height * 0.3
+                      ? controller.heightSheet
+                      : height * 0.3,
+                ),
               if (controller.visibilitySticker)
                 Container(
-                  height: 195,
+                  height: AppDimens.dimens_195,
                   padding: const EdgeInsets.all(20),
-                  color: ColorConstants.colorGrey0,
+                  color: ColorConstants.colorWhite,
                   child: GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
@@ -314,7 +377,7 @@ class NewMessage extends StatelessWidget {
                           },
                           child: Image.asset(
                               AppStoragePath.sticker.values.toList()[index]))),
-                )
+                ),
             ],
           ),
         ));

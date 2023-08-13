@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/app_storage_path.dart';
 import 'package:new_ap/model/chat_model.dart';
-import 'package:new_ap/screen/partner_screen/view/chat_image_click_partner_screen.dart';
+import 'package:new_ap/screen/partner_screen/view/pages/chat_image_click_partner_screen.dart';
 import '../../../../config/app_dimens.dart';
 import '../../controller/message_partner_controller.dart';
 

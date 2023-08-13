@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
 import 'package:new_ap/config/firebase_api.dart';
 import 'package:new_ap/model/cart_model.dart';
 import 'package:new_ap/model/product_model.dart';
+import 'package:new_ap/model/rate_and_comment_model.dart';
+
+import '../../../common_app/common_widget.dart';
 import '../../../config/app_another.dart';
 import '../../../model/kitchen_model.dart';
 import '../../../model/promo_model.dart';
@@ -18,8 +23,13 @@ class MainController extends GetxController {
   List<CartModel> get cart => _cart.value;
   final Rx<List<ProductModel>> product = Rx<List<ProductModel>>([]);
 
-  final Rx<UserModel> _user =
-      UserModel(id: '', email: '', image: '', mobile: '', userName: '').obs;
+  final Rx<UserModel> _user = UserModel(
+    id: '',
+    email: '',
+    image: '',
+    mobile: '',
+    userName: '',
+  ).obs;
   UserModel get user => _user.value;
   final Rx<List<KitchenModel>> _kitchenModel = Rx<List<KitchenModel>>([]);
   List<KitchenModel> get kitchenModel => _kitchenModel.value;
@@ -35,8 +45,12 @@ class MainController extends GetxController {
   final Rx<List<ShippingPromoCode>> _shippingPromoCode =
       Rx<List<ShippingPromoCode>>([]);
   List<ShippingPromoCode> get shippingPromoCode => _shippingPromoCode.value;
-  Rx<List<KitchenModel>> _kitchenSearch = Rx<List<KitchenModel>>([]);
+  final Rx<List<KitchenModel>> _kitchenSearch = Rx<List<KitchenModel>>([]);
   List<KitchenModel> get kitchenSearch => _kitchenSearch.value;
+
+  final Rx<List<RateAndCommentModel>> rateAndComment =
+      Rx<List<RateAndCommentModel>>([]);
+
   int getLenght(int lenght) {
     if (lenght % 2 == 0) {
       return lenght;
@@ -52,10 +66,10 @@ class MainController extends GetxController {
     });
     if (AppAnother.userAuth != null) {
       _kitchenModel.bindStream(kitchenStream());
-      _cart.bindStream(AppAnother().cartStream(AppAnother.userAuth!.uid));
+      _cart.bindStream(AppAnother.cartStream(AppAnother.userAuth!.uid));
       _user.bindStream(getUser(AppAnother.userAuth!.uid));
-      _promoCode.bindStream(AppAnother().promoCodeStream());
-      _shippingPromoCode.bindStream(AppAnother().shippingPromoCode());
+      _promoCode.bindStream(AppAnother.promoCodeStream());
+      _shippingPromoCode.bindStream(AppAnother.shippingPromoCode());
       _historySearch.bindStream(kitchenSearchStream(AppAnother.userAuth!.uid));
     }
     super.onInit();
@@ -70,6 +84,27 @@ class MainController extends GetxController {
       UserModel userStream =
           UserModel.fromJson(event.data() as Map<String, dynamic>);
       return userStream;
+    });
+  }
+
+  Stream<List<RateAndCommentModel>> getReview(String kitchenId) {
+    return FirebaseApi()
+        .kitchenReviewCollection(kitchenId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((event) {
+      List<RateAndCommentModel> listReview = [];
+      if (event.docs.isNotEmpty) {
+        if ((event.docs[0].data() as Map<String, dynamic>)['quantity'] !=
+            null) {
+          for (int i = 0; i < event.docs.length; i++) {
+            listReview.add(RateAndCommentModel.fromJson(
+                (event.docs[i].data() as Map<String, dynamic>)));
+          }
+        }
+      }
+
+      return listReview;
     });
   }
 
@@ -130,9 +165,119 @@ class MainController extends GetxController {
     }
   }
 
+  String getRate() {
+    double count = 0;
+    if (rateAndComment.value.isNotEmpty) {
+      for (int i = 0; i < rateAndComment.value.length; i++) {
+        count += rateAndComment.value[i].rate.toDouble();
+      }
+      return ((count / (rateAndComment.value.length))).toStringAsFixed(1);
+    } else {
+      return '0';
+    }
+  }
+
+  double ratioStart(int number) {
+    if (rateAndComment.value.isNotEmpty) {
+      int count = 0;
+      if (number == 1) {
+        for (int i = 0; i < rateAndComment.value.length; i++) {
+          if (rateAndComment.value[i].rate == 1) {
+            count = count + 1;
+          }
+        }
+
+        return count / rateAndComment.value.length;
+      } else if (number == 2) {
+        for (int i = 0; i < rateAndComment.value.length; i++) {
+          if (rateAndComment.value[i].rate == 2) {
+            count++;
+          }
+        }
+        return count / rateAndComment.value.length;
+      } else if (number == 3) {
+        for (int i = 0; i < rateAndComment.value.length; i++) {
+          if (rateAndComment.value[i].rate == 3) {
+            count++;
+          }
+        }
+        return count / rateAndComment.value.length;
+      } else if (number == 4) {
+        for (int i = 0; i < rateAndComment.value.length; i++) {
+          if (rateAndComment.value[i].rate == 4) {
+            count++;
+          }
+        }
+        return count / rateAndComment.value.length;
+      } else {
+        for (int i = 0; i < rateAndComment.value.length; i++) {
+          if (rateAndComment.value[i].rate == 5) {
+            count++;
+          }
+        }
+        return count / rateAndComment.value.length;
+      }
+    } else {
+      return 0.0;
+    }
+  }
+
+  String getBooked(int index) {
+    String value = '';
+    for (int i = 0; i < rateAndComment.value[index].quantity.length; i++) {
+      if (rateAndComment.value[index].quantity[i] == 1) {
+        value = value + rateAndComment.value[index].name[i];
+      } else {
+        value =
+            '$value${rateAndComment.value[index].name[i]}x${rateAndComment.value[index].quantity[i]} ';
+      }
+    }
+    return value;
+  }
+
+  likeMethod(String id, int index, BuildContext ctx) async {
+    if (AppAnother.userAuth != null) {
+      try {
+        if (rateAndComment.value[index].listLike
+            .contains(AppAnother.userAuth!.uid)) {
+          final List<String> newList = [];
+          newList.add(AppAnother.userAuth!.uid);
+
+          await FirebaseApi()
+              .kitchenReviewCollection(id)
+              .doc(rateAndComment.value[index].id)
+              .update({
+            'list like': FieldValue.arrayRemove(newList),
+            'like': rateAndComment.value[index].like - 1
+          });
+        } else {
+          final List<String> newList = rateAndComment.value[index].listLike;
+
+          newList.add(AppAnother.userAuth!.uid);
+          await FirebaseApi()
+              .kitchenReviewCollection(id)
+              .doc(rateAndComment.value[index].id)
+              .update({
+            'list like': FieldValue.arrayUnion(newList),
+            'like': rateAndComment.value[index].like + 1
+          });
+        }
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
+      }
+    }
+  }
+
   // SearchScreen
   //final Rx<List<String>> _kitchenName = Rx<List<String>>([]);
-  Rx<List<String>> _kitchenName = Rx<List<String>>([]);
+  final Rx<List<String>> _kitchenName = Rx<List<String>>([]);
   List<String> get kitchenName => _kitchenName.value;
   final RxBool _isCheck = false.obs;
   bool get isCheck => _isCheck.value;
@@ -178,21 +323,14 @@ class MainController extends GetxController {
                       .delete());
         }
       } on PlatformException catch (err) {
-        var message = 'An error, try again';
-        if (err.message != null) {
-          message = err.message!;
-        }
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
       } catch (err) {
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(err.toString()),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
@@ -216,7 +354,7 @@ class MainController extends GetxController {
 
   getListQuery(String query) {
     _reload.value = true;
-    _kitchenSearch = Rx<List<KitchenModel>>([]);
+    _kitchenSearch.value = [];
 
     for (var item in _kitchenModel.value) {
       if (item.name.toLowerCase().contains(query.toLowerCase())) {
@@ -226,13 +364,23 @@ class MainController extends GetxController {
     _reload.value = false;
   }
 
+  getKitchenSearch(List<Favorite> favorite) {
+    _kitchenSearch.value = [];
+    for (var item in _kitchenModel.value) {
+      for (var value in favorite) {
+        if (value.id == item.id) {
+          _kitchenSearch.value.add(item);
+        }
+      }
+    }
+  }
+
   getSuggest(String value) {
-    _kitchenName = Rx<List<String>>([]);
+    _kitchenName.value = [];
     for (var item in kitchenModel) {
       if (item.name.toLowerCase().contains(value.toLowerCase())) {
         _kitchenName.value.add(item.name);
       }
     }
-    itemCount = _kitchenName.value.length.obs;
   }
 }

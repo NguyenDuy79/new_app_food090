@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/model/orders_model.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/cart_screen.dart';
+import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
+import 'package:new_ap/screen/image_full_view/image_full_view_screen.dart';
 
 import '../../../../config/app_dimens.dart';
 
 // ignore: must_be_immutable
 class OrderDoneDetail extends StatelessWidget {
-  OrderDoneDetail(this.orderDetail, {super.key});
+  OrderDoneDetail(this.orderDetail, this.imageUrl, {super.key});
   final OrderModel orderDetail;
+  final String imageUrl;
   OrderController controller = Get.find<OrderController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: AppBar(
         title: const Text(
           'Đơn hàng đã hoàn thành',
@@ -48,91 +53,122 @@ class OrderDoneDetail extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(bottom: AppDimens.dimens_20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.dimens_20,
                     vertical: AppDimens.dimens_10),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimens.dimens_10)),
-                  color: ColorConstants.colorGrey1,
-                  child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimens.dimens_10,
-                            vertical: AppDimens.dimens_5),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              const Text(
-                                'ID:',
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.dimens_10,
+                          vertical: AppDimens.dimens_5),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Text(
+                              'ID:',
+                              style: TextStyle(
+                                  fontSize: AppDimens.dimens_20,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColorConstants.colorBlack),
+                            ),
+                            Flexible(
+                              child: FittedBox(
+                                  child: Text(orderDetail.id,
+                                      style: const TextStyle(
+                                        fontSize: AppDimens.dimens_20,
+                                        fontWeight: FontWeight.bold,
+                                        color: ColorConstants.colorBlack,
+                                      ))),
+                            )
+                          ]),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.dimens_10,
+                          vertical: AppDimens.dimens_5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Thời gian tạo:',
+                            style: TextStyle(fontSize: AppDimens.dimens_20),
+                          ),
+                          Flexible(
+                            child: FittedBox(
+                              child: Text(
+                                '${orderDetail.id.split(':')[0]}:${orderDetail.id.split(':')[1]}',
+                                style: const TextStyle(
+                                    fontSize: AppDimens.dimens_20),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.dimens_10,
+                          vertical: AppDimens.dimens_5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Hoàn thành:',
+                            style: TextStyle(fontSize: AppDimens.dimens_20),
+                          ),
+                          Flexible(
+                            child: FittedBox(
+                              child: Text(
+                                '${orderDetail.timeFour.toDate().toString().split(':')[0]}:${orderDetail.timeFour.toDate().toString().split(':')[1]}',
+                                style: const TextStyle(
+                                    fontSize: AppDimens.dimens_20),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.dimens_10,
+                          vertical: AppDimens.dimens_5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            'Chi tiết:',
+                            style: TextStyle(fontSize: AppDimens.dimens_20),
+                          ),
+                          SizedBox(
+                            height: AppDimens.dimens_22,
+                            child: TextButton(
+                              onPressed: () {
+                                controller.showDiaLogDelivery(
+                                    context,
+                                    orderDetail.timeStamp,
+                                    orderDetail.timeOne,
+                                    orderDetail.timeTwo,
+                                    orderDetail.timeThree,
+                                    orderDetail.timeFour);
+                              },
+                              style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.all(0)),
+                              child: const Text(
+                                'Xem',
                                 style: TextStyle(
                                     fontSize: AppDimens.dimens_20,
-                                    fontWeight: FontWeight.bold,
-                                    color: ColorConstants.colorBlack),
+                                    color: ColorConstants.themeColor),
                               ),
-                              Flexible(
-                                child: FittedBox(
-                                    child: Text(orderDetail.id,
-                                        style: const TextStyle(
-                                          fontSize: AppDimens.dimens_20,
-                                          fontWeight: FontWeight.bold,
-                                          color: ColorConstants.colorBlack,
-                                        ))),
-                              )
-                            ]),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimens.dimens_10,
-                            vertical: AppDimens.dimens_5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            const Text(
-                              'Thời gian tạo:',
-                              style: TextStyle(fontSize: AppDimens.dimens_20),
                             ),
-                            Flexible(
-                              child: FittedBox(
-                                child: Text(
-                                  '${orderDetail.id.split(':')[0]}:${orderDetail.id.split(':')[1]}',
-                                  style: const TextStyle(
-                                      fontSize: AppDimens.dimens_20),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
+                          )
+                        ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimens.dimens_10,
-                            vertical: AppDimens.dimens_5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            const Text(
-                              'Hoàn thành:',
-                              style: TextStyle(fontSize: AppDimens.dimens_20),
-                            ),
-                            Flexible(
-                              child: FittedBox(
-                                child: Text(
-                                  '${orderDetail.timeFour.split(':')[0]}:${orderDetail.timeFour.split(':')[1]}',
-                                  style: const TextStyle(
-                                      fontSize: AppDimens.dimens_20),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
+                    )
+                  ],
                 ),
               ),
               SizedBox(
@@ -146,11 +182,11 @@ class OrderDoneDetail extends StatelessWidget {
                           horizontal: AppDimens.dimens_20,
                           vertical: AppDimens.dimens_10),
                       child: Card(
-                        elevation: AppDimens.dimens_5,
-                        color: ColorConstants.colorGrey1,
+                        elevation: AppDimens.dimens_1,
+                        color: ColorConstants.colorGrey0,
                         shape: RoundedRectangleBorder(
                             borderRadius:
-                                BorderRadius.circular(AppDimens.dimens_10)),
+                                BorderRadius.circular(AppDimens.dimens_15)),
                         child: SizedBox(
                           width: double.infinity,
                           height: AppDimens.dimens_90,
@@ -214,11 +250,11 @@ class OrderDoneDetail extends StatelessWidget {
                 ),
               ),
               Card(
-                elevation: AppDimens.dimens_5,
+                elevation: AppDimens.dimens_1,
                 margin: const EdgeInsets.symmetric(
                     horizontal: AppDimens.dimens_20,
                     vertical: AppDimens.dimens_10),
-                color: ColorConstants.colorGrey1,
+                color: ColorConstants.colorGrey0,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimens.dimens_15)),
                 child: SizedBox(
@@ -321,28 +357,62 @@ class OrderDoneDetail extends StatelessWidget {
                   ),
                 ),
               ),
+              GestureDetector(
+                onTap: () {
+                  Get.to(
+                      () => ImageFullViewScreen('order done screen', imageUrl));
+                },
+                child: SizedBox(
+                  height: AppDimens.dimens_200,
+                  width: AppDimens.dimens_150,
+                  child: Hero(
+                    tag: 'order done screen',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppDimens.dimens_10),
+                      child: Image.network(
+                        imageUrl,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          }
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         ),
       ),
       bottomNavigationBar: Container(
         width: double.infinity,
-        height: AppDimens.dimens_50,
+        height: AppDimens.dimens_70,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.dimens_20, vertical: AppDimens.dimens_5),
+            horizontal: AppDimens.dimens_20, vertical: AppDimens.dimens_15),
         child: ElevatedButton(
             style: ElevatedButton.styleFrom(
                 elevation: AppDimens.dimens_5,
                 backgroundColor: ColorConstants.themeColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimens.dimens_8))),
-            onPressed: () {},
+            onPressed: () async {
+              await controller.orderAgain(orderDetail, context);
+
+              Get.back();
+              Get.back();
+              Get.to(() => CartScreen(Get.find<MainController>().kitchenModel));
+            },
             child: const Text(
               'Mua Lại',
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: AppDimens.dimens_25,
-                  color: ColorConstants.colorBlack),
+                  color: ColorConstants.colorWhite),
             )),
       ),
     );

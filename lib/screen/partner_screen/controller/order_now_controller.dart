@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:new_ap/config/app_colors.dart';
+import 'package:new_ap/common_app/common_widget.dart';
 import 'package:new_ap/config/app_string.dart';
 import 'package:new_ap/config/firebase_api.dart';
 import 'package:new_ap/model/chat_model.dart';
 import 'package:new_ap/model/orders_model.dart';
 import 'package:new_ap/screen/partner_screen/controller/partner_controller.dart';
-import 'package:new_ap/screen/partner_screen/view/camera_picker_screen.dart';
+import 'package:new_ap/screen/partner_screen/view/pages/camera_picker_screen.dart';
 import '../../../config/app_another.dart';
 import '../../../config/app_dimens.dart';
 import '../../../model/user_model.dart';
@@ -27,18 +28,31 @@ class OrderNowController extends GetxController {
   String url = '';
   File? _storeImage;
   File? get storeImage => _storeImage;
-  UserModel _user =
-      UserModel(id: '', email: '', image: '', mobile: '', userName: '');
-  UserModel _userPartner =
-      UserModel(id: '', email: '', image: '', mobile: '', userName: '');
+  UserModel _user = UserModel(
+    id: '',
+    email: '',
+    image: '',
+    mobile: '',
+    userName: '',
+  );
+  UserModel _userPartner = UserModel(
+    id: '',
+    email: '',
+    image: '',
+    mobile: '',
+    userName: '',
+  );
   UserModel get userPartner => _userPartner;
   UserModel get user => _user;
+  final RxBool _isLoadingData = false.obs;
+  bool get isLoadingData => _isLoadingData.value;
 
   @override
   void onInit() {
     _order.bindStream(orderNowStream());
     if (FirebaseAuth.instance.currentUser != null) {
       _orderActive.bindStream(orderActiveStream());
+      _historySearch.bindStream(getStreamHisrtory(AppAnother.userAuth!.uid));
     }
     super.onInit();
   }
@@ -65,6 +79,8 @@ class OrderNowController extends GetxController {
               }
             }
           }
+        } else {
+          status.value = 0;
         }
       }
 
@@ -102,8 +118,11 @@ class OrderNowController extends GetxController {
             } else if (listOrderStream[0].statusDelivery ==
                 AppString.statusDelivery[2]) {
               status.value = 3;
-            } else {
+            } else if (listOrderStream[0].statusDelivery ==
+                AppString.statusDelivery[3]) {
               status.value = 4;
+            } else {
+              status.value = 0;
             }
           }
         }
@@ -125,6 +144,14 @@ class OrderNowController extends GetxController {
       totalPrice = totalPrice + int.parse(price[i]) * quantity[i];
     }
     return totalPrice;
+  }
+
+  getTrueLoading() {
+    _isLoadingData.value = true;
+  }
+
+  getFalseLoading() {
+    _isLoadingData.value = false;
   }
 
   getDialog(BuildContext ctx) {
@@ -161,7 +188,7 @@ class OrderNowController extends GetxController {
             name: orderChoose.name,
             timeStamp: orderChoose.timeStamp,
             ship: orderChoose.ship,
-            timeOne: dateTime.toString(),
+            timeOne: timeStamp,
             timeTwo: orderChoose.timeTwo,
             timeThree: orderChoose.timeThree,
             timeFour: orderChoose.timeFour,
@@ -171,9 +198,11 @@ class OrderNowController extends GetxController {
             reduceShip: orderChoose.reduceShip,
             productPrice: orderChoose.productPrice,
             kitchenId: orderChoose.kitchenId,
+            partnerId: AppAnother.userAuth!.uid,
             kitchenName: orderChoose.kitchenName,
             promoCode: orderChoose.promoCode,
             uid: orderChoose.uid,
+            cancelOrder: orderChoose.cancelOrder,
             quantity: orderChoose.quantity,
             shippingCode: orderChoose.shippingCode,
             status: orderChoose.status,
@@ -198,6 +227,8 @@ class OrderNowController extends GetxController {
             isSeen: false);
         Map<String, List> getQuantity = {'quantity': orderChoose.quantity};
         Map<String, List> getPrice = {'productPrice': orderChoose.productPrice};
+        _isLoadingData.value = true;
+        CommonWidget.showDialogLoading(ctx);
         await FirebaseApi().getUser(orderChoose.uid).then((value) {
           _user = UserModel.fromJson(value.data() as Map<String, dynamic>);
         });
@@ -252,7 +283,8 @@ class OrderNowController extends GetxController {
             .doc(orderChoose.id)
             .update({
           'status delivery': AppString.statusDelivery[0],
-          'timeOne': dateTime.toString()
+          'timeOne': timeStamp,
+          'partnerId': AppAnother.userAuth!.uid
         }).then((value) async {
           await FirebaseApi()
               .userCollection
@@ -279,26 +311,25 @@ class OrderNowController extends GetxController {
               .doc(dateTime.toString())
               .set(chatUser.toJson());
         }).then((value) {
+          _isLoadingData.value = false;
+          if (!isLoadingData) {
+            Get.back();
+          }
           Get.find<PartnerController>().selectPage(1);
-          Get.toNamed('/partner');
+
           FirebaseApi().orderNow.doc(orderChoose.id).delete();
         }).catchError((e) => throw e);
       } on PlatformException catch (err) {
-        var message = 'An error, try again';
-        if (err.message != null) {
-          message = err.message!;
-        }
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: ColorConstants.colorRed1,
-        ));
+        _isLoadingData.value = false;
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
       } catch (err) {
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(err.toString()),
-          backgroundColor: ColorConstants.colorRed1,
-        ));
+        _isLoadingData.value = false;
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
@@ -318,54 +349,80 @@ class OrderNowController extends GetxController {
   }
 
   statusDeliveryMethod(BuildContext ctx) async {
-    String dateTime = DateTime.now().toString();
     Timestamp timestamp = Timestamp.now();
     if (status.value == 1) {
       Get.to(() {
         return CameraPicker();
       });
     } else if (status.value == 2) {
-      await FirebaseApi()
-          .orderPartner(FirebaseAuth.instance.currentUser!.uid)
-          .doc(_orderActive.value[0].id)
-          .update({
-        'status delivery': AppString.statusDelivery3,
-        'timeThree': dateTime
-      }).then((value) async {
+      try {
+        CommonWidget.showDialogLoading(ctx);
         await FirebaseApi()
-            .orderCollection(_orderActive.value[0].uid)
+            .orderPartner(FirebaseAuth.instance.currentUser!.uid)
             .doc(_orderActive.value[0].id)
             .update({
           'status delivery': AppString.statusDelivery3,
-          'timeThree': dateTime
+          'timeThree': timestamp
+        }).then((value) {
+          Get.back();
+          FirebaseApi()
+              .orderCollection(_orderActive.value[0].uid)
+              .doc(_orderActive.value[0].id)
+              .update({
+            'status delivery': AppString.statusDelivery3,
+            'timeThree': timestamp
+          });
         });
-      });
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
+      }
     } else if (status.value == 3) {
-      await FirebaseApi()
-          .orderPartner(FirebaseAuth.instance.currentUser!.uid)
-          .doc(_orderActive.value[0].id)
-          .update({
-        'status delivery': AppString.statusDelivery4,
-        'timeFour': dateTime,
-        'timeStamp': timestamp
-      }).then((value) async {
+      try {
+        CommonWidget.showDialogLoading(ctx);
         await FirebaseApi()
-            .orderCollection(_orderActive.value[0].uid)
+            .orderPartner(FirebaseAuth.instance.currentUser!.uid)
             .doc(_orderActive.value[0].id)
             .update({
           'status delivery': AppString.statusDelivery4,
-          'timeFour': dateTime,
-          'timeStamp': timestamp
+          'timeFour': timestamp,
+        }).then((value) {
+          Get.back();
+          FirebaseApi()
+              .orderCollection(_orderActive.value[0].uid)
+              .doc(_orderActive.value[0].id)
+              .update({
+            'status delivery': AppString.statusDelivery4,
+            'timeFour': timestamp,
+          });
         });
-      });
+        Get.back();
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+
+        CommonWidget.showErrorDialog(ctx);
+      }
     } else if (status.value == 4) {
       if (AppAnother.userAuth != null) {
         try {
+          CommonWidget.showDialogLoading(ctx);
           OrderModel newOrder = OrderModel(
               id: _orderActive.value[0].id,
               name: _orderActive.value[0].name,
               timeStamp: _orderActive.value[0].timeStamp,
               ship: _orderActive.value[0].ship,
+              partnerId: _orderActive.value[0].partnerId,
               timeOne: _orderActive.value[0].timeOne,
               timeTwo: _orderActive.value[0].timeTwo,
               timeThree: _orderActive.value[0].timeThree,
@@ -373,6 +430,7 @@ class OrderNowController extends GetxController {
               productId: _orderActive.value[0].productId,
               price: _orderActive.value[0].price,
               reduce: _orderActive.value[0].reduce,
+              cancelOrder: _orderActive.value[0].cancelOrder,
               reduceShip: _orderActive.value[0].reduceShip,
               productPrice: _orderActive.value[0].productPrice,
               kitchenId: _orderActive.value[0].kitchenId,
@@ -415,30 +473,25 @@ class OrderNowController extends GetxController {
                 .collection('orderCompleted')
                 .doc(_orderActive.value[0].id)
                 .update(getProductPrice);
+            Get.back();
             Get.find<PartnerController>().selectPage(3);
             Get.toNamed('/partner');
             await FirebaseApi()
                 .orderPartner(AppAnother.userAuth!.uid)
                 .doc(_orderActive.value[0].id)
                 .delete();
+            url = '';
             status.value = 0;
-          }).catchError((e) => throw e);
+          });
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: ColorConstants.colorRed1,
-          ));
+          Get.back();
+          log(err.message.toString());
+
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: ColorConstants.colorRed1,
-          ));
+          Get.back();
+
+          CommonWidget.showErrorDialog(ctx);
         }
       }
     }
@@ -470,10 +523,12 @@ class OrderNowController extends GetxController {
   }
 
   getImageBill(BuildContext ctx) async {
-    String dateTime = DateTime.now().toString();
+    Timestamp dateTime = Timestamp.now();
     if (FirebaseAuth.instance.currentUser != null) {
       if (_storeImage != null) {
         try {
+          CommonWidget.showDialogLoading(ctx);
+
           var ref = FirebaseStorage.instance.ref().child('image_order').child(
               '${FirebaseAuth.instance.currentUser!.uid}${DateTime.now()}.png');
           await ref.putFile(storeImage!);
@@ -497,25 +552,173 @@ class OrderNowController extends GetxController {
             }).then((value) {
               _storeImage = null;
               Get.back();
+              Get.back();
+              CommonWidget.showDialogSuccess(ctx);
             });
           });
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: ColorConstants.colorRed1,
-          ));
+          Get.back();
+          Get.back();
+          log(err.message.toString());
+
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: ColorConstants.colorRed1,
-          ));
+          Get.back();
+          Get.back();
+
+          CommonWidget.showErrorDialog(ctx);
         }
+      }
+    }
+  }
+
+  String formatTime(Timestamp timestamp) {
+    Duration value =
+        Duration(seconds: Timestamp.now().seconds - timestamp.seconds);
+
+    final days = value.inDays.toString();
+    final hours = value.inHours.remainder(24).toString();
+    final minutes = value.inMinutes.remainder(60).toString();
+    final seconds = value.inSeconds.remainder(60).toString();
+
+    if (value.inDays > 0) {
+      return '$days ngày';
+    } else if (value.inHours > 0) {
+      return '$hours giờ';
+    } else if (value.inMinutes > 0) {
+      return '$minutes phút';
+    } else {
+      return '$seconds giây';
+    }
+  }
+
+  // search
+  final TextEditingController textEditing = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  FocusNode get focusNode => _focusNode;
+  final Rx<List<SearchModel>> _historySearch = Rx<List<SearchModel>>([]);
+  List<String> historySearch = [];
+  final Rx<List<String>> _suggestString = Rx<List<String>>([]);
+  List<String> get suggestString => _suggestString.value;
+  final Rx<List<OrderModel>> _resultSearch = Rx<List<OrderModel>>([]);
+  List<OrderModel> get resultSearch => _resultSearch.value;
+  final RxBool _isCheck = false.obs;
+  bool get isCheck => _isCheck.value;
+  final RxBool _isMain = true.obs;
+  bool get isMain => _isMain.value;
+  final RxBool _isLoading = false.obs;
+  bool get isLoading => _isLoading.value;
+
+  Stream<List<SearchModel>> getStreamHisrtory(String uid) {
+    return FirebaseApi()
+        .orderNowSearchCollection(uid)
+        .orderBy('id', descending: true)
+        .snapshots()
+        .map((event) {
+      List<SearchModel> listSearchStream = [];
+      for (var item in event.docs) {
+        listSearchStream
+            .add(SearchModel.fromJson(item.data() as Map<String, dynamic>));
+      }
+      return listSearchStream;
+    });
+  }
+
+  Future<void> submitQuerySearch(String query, BuildContext ctx) async {
+    Timestamp timestamp = Timestamp.now();
+
+    if (AppAnother.userAuth != null) {
+      try {
+        if (historySearch.length <= 10) {
+          await FirebaseApi()
+              .orderNowSearchCollection(AppAnother.userAuth!.uid)
+              .doc(timestamp.toString())
+              .set({'id': timestamp, 'search value': query.trim()}).catchError(
+                  (e) => throw e);
+        } else {
+          Timestamp id =
+              _historySearch.value[_historySearch.value.length - 1].id;
+          await FirebaseApi()
+              .orderNowSearchCollection(AppAnother.userAuth!.uid)
+              .doc(timestamp.toString())
+              .set({'id': timestamp, 'search value': query.trim()}).then(
+                  (value) => FirebaseApi()
+                      .orderSearchCollection(AppAnother.userAuth!.uid)
+                      .doc(id.toString())
+                      .delete());
+        }
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      }
+    }
+  }
+
+  changeStatusEmpty() {
+    if (textEditing.text.trim() == '') {
+      _isCheck.value = false;
+    } else {
+      _isCheck.value = true;
+    }
+  }
+
+  getTrueIsMain() {
+    _isMain.value = true;
+  }
+
+  getFalseIsMain() {
+    _isMain.value = false;
+  }
+
+  getSuggest(String value) {
+    _suggestString.value = [];
+    for (var item in _order.value) {
+      if (item.kitchenName.toLowerCase().contains(value.toLowerCase())) {
+        if (!_suggestString.value.contains(item.kitchenName)) {
+          _suggestString.value.add(item.kitchenName);
+        }
+      }
+      for (var name in item.name) {
+        if (name.toLowerCase().contains(value.toLowerCase())) {
+          if (!_suggestString.value.contains(name)) {
+            _suggestString.value.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  getListQuery(String query) {
+    _isLoading.value = true;
+    _resultSearch.value = [];
+    for (var item in _order.value) {
+      if (item.kitchenName.toLowerCase().contains(query.toLowerCase())) {
+        if (!_resultSearch.value.contains(item)) {
+          _resultSearch.value.add(item);
+        }
+      }
+      for (var name in item.name) {
+        if (name.toLowerCase().contains(query.toLowerCase())) {
+          if (!_resultSearch.value.contains(item)) {
+            _resultSearch.value.add(item);
+          }
+        }
+      }
+    }
+    _isLoading.value = false;
+  }
+
+  getValueHistorySearch() {
+    historySearch = [];
+    for (var item in _historySearch.value) {
+      if (!historySearch.contains(item.query)) {
+        historySearch.add(item.query);
       }
     }
   }

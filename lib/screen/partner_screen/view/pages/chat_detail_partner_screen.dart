@@ -14,10 +14,7 @@ class ChatDetailPartnerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetX<MessagePartnerController>(dispose: (state) {
-      MessagePartnerController()
-          .outChatDetailScreen(MessagePartnerController().chatProfile.value.id);
-    }, builder: (controller) {
+    return GetX<MessagePartnerController>(builder: (controller) {
       return WillPopScope(
         onWillPop: () async {
           if (controller.visibilitySticker) {
@@ -34,12 +31,14 @@ class ChatDetailPartnerScreen extends StatelessWidget {
             return false;
           } else {
             controller.resetLimit();
-            controller.outChatDetailScreen(controller.chatProfile.value.id);
+            controller.outChatDetailScreen(
+                controller.chatProfile.value.id, context);
 
             return true;
           }
         },
         child: Scaffold(
+            backgroundColor: ColorConstants.colorWhite,
             appBar: AppBar(
                 automaticallyImplyLeading: false,
                 backgroundColor: ColorConstants.colorWhite,
@@ -61,7 +60,7 @@ class ChatDetailPartnerScreen extends StatelessWidget {
                           } else {
                             controller.resetLimit();
                             controller.outChatDetailScreen(
-                                controller.chatProfile.value.id);
+                                controller.chatProfile.value.id, context);
                             return Get.back();
                           }
                         },

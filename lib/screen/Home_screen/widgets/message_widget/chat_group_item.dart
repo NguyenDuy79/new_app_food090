@@ -45,10 +45,11 @@ class ChatGroupItem extends StatelessWidget {
                       AppAnother.userAuth!.uid, id, controller.limit));
                   controller.chatProfile
                       .bindStream(controller.getChatGroupProfile(id));
-                  Get.to(() => const ChatDetailScreen());
-                  await controller.getChatDetailScreen(id);
+                  Get.to(() => ChatDetailScreen());
+                  await controller.getChatDetailScreen(id, contex);
                   if (notSeen > 0) {
-                    await controller.changeNotSeenValue(id);
+                    // ignore: use_build_context_synchronously
+                    await controller.changeNotSeenValue(id, contex);
 
                     await controller.changeStatusSeen(document, id);
                   }

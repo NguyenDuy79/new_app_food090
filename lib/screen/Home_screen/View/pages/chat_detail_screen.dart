@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,15 +9,21 @@ import 'package:new_ap/screen/Home_screen/widgets/chat_detail_widget/message.dar
 import 'package:new_ap/screen/Home_screen/widgets/chat_detail_widget/new_message.dart';
 
 class ChatDetailScreen extends StatelessWidget {
-  const ChatDetailScreen({super.key});
-
+  ChatDetailScreen({super.key});
+  final controller = Get.find<MessageController>();
   @override
   Widget build(BuildContext context) {
+    controller.getTrueExtend();
+    Timer(const Duration(seconds: 5), () {
+      if (controller.messageController.text == '') {
+        controller.getFalseExtend();
+      }
+    });
     return GetX<MessageController>(builder: (controller) {
       return WillPopScope(
         onWillPop: () async {
           if (controller.visibilitySticker) {
-            controller.visibilityStickerWidget();
+            controller.getFalseVisibility();
             return false;
           } else if (controller.recording.value) {
             controller.stop().then((value) {
@@ -28,12 +35,16 @@ class ChatDetailScreen extends StatelessWidget {
 
             return false;
           } else {
-            controller.outChatDetailScreen(controller.chatProfile.value.id);
+            controller.getFalseExtend();
+            controller.messageController.clear();
+            controller.outChatDetailScreen(
+                controller.chatProfile.value.id, context);
             controller.resetLimit();
             return true;
           }
         },
         child: Scaffold(
+            backgroundColor: ColorConstants.colorWhite,
             appBar: AppBar(
                 automaticallyImplyLeading: false,
                 backgroundColor: ColorConstants.colorWhite,
@@ -44,7 +55,7 @@ class ChatDetailScreen extends StatelessWidget {
                     child: IconButton(
                         onPressed: () {
                           if (controller.visibilitySticker) {
-                            controller.visibilityStickerWidget();
+                            controller.getFalseVisibility();
                           } else if (controller.recording.value) {
                             controller.stop().then((value) {
                               if (controller.audioFile != null) {
@@ -55,7 +66,7 @@ class ChatDetailScreen extends StatelessWidget {
                           } else {
                             controller.resetLimit();
                             controller.outChatDetailScreen(
-                                controller.chatProfile.value.id);
+                                controller.chatProfile.value.id, context);
                             return Get.back();
                           }
                         },

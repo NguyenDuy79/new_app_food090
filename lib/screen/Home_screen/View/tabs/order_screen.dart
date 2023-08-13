@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/screen/Home_screen/controllers/orders_controller.dart';
-import 'package:new_ap/screen/Home_screen/widgets/orders_widget/active_order.dart';
+
 import 'package:new_ap/screen/Home_screen/widgets/orders_widget/cancelled_order.dart';
 import 'package:new_ap/screen/Home_screen/widgets/orders_widget/completed_order.dart';
 import 'package:new_ap/screen/Search_Screen/home/search_order_screen.dart';
@@ -23,6 +23,7 @@ class OrderScreen extends StatelessWidget {
     return DefaultTabController(
         length: 3,
         child: Scaffold(
+          backgroundColor: ColorConstants.colorWhite,
           appBar: AppBar(
             backgroundColor: ColorConstants.colorWhite,
             title: const Text(
@@ -55,7 +56,6 @@ class OrderScreen extends StatelessWidget {
           body: TabBarView(
             controller: controller.controller,
             children: <Widget>[
-              ActiveOrder(height, width),
               CompletedOrder(height, width),
               const CancelledOrder()
             ],

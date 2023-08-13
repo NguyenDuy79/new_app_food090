@@ -9,41 +9,39 @@ import '../../../config/app_dimens.dart';
 
 class AuthScreen extends StatelessWidget {
   AuthScreen({super.key});
-  final appBar = AppBar(
-    backgroundColor: ColorConstants.colorWhite,
-    elevation: 0,
-  );
+
   final LoginController controller = Get.find<LoginController>();
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height -
-        appBar.preferredSize.height -
+        AppBar().preferredSize.height -
         MediaQuery.of(context).padding.top;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         body: SingleChildScrollView(
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-          Container(
-              alignment: Alignment.center,
-              height: AppDimens.dimens_350,
-              child: Obx(() {
-                return controller.isLogin.value
-                    ? Image.asset(
-                        'assets/image/login.png',
-                        fit: BoxFit.cover,
-                      )
-                    : Image.asset(
-                        'assets/image/sign_up.png',
-                        fit: BoxFit.cover,
-                      );
-              })),
-          Obx(() {
-            return controller.isLogin.value == true
-                ? AuthWidgetLogin(controller.isLogin, width)
-                : AuthSignUp(controller.isLogin, height);
-          }),
-        ])));
+              Container(
+                  alignment: Alignment.center,
+                  height: AppDimens.dimens_350,
+                  child: Obx(() {
+                    return controller.isLogin.value
+                        ? Image.asset(
+                            'assets/image/login.png',
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            'assets/image/sign_up.png',
+                            fit: BoxFit.cover,
+                          );
+                  })),
+              Obx(() {
+                return controller.isLogin.value == true
+                    ? AuthWidgetLogin(controller.isLogin, width)
+                    : AuthSignUp(controller.isLogin, height);
+              }),
+            ])));
   }
 }

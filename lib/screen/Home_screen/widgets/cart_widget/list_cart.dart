@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/model/cart_model.dart';
 import 'package:new_ap/model/kitchen_model.dart';
+
 import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
+
 import 'package:new_ap/screen/Home_screen/widgets/cart_widget/item_cart.dart';
 
 import '../../../../config/app_dimens.dart';
@@ -27,7 +29,13 @@ class ListCart extends StatelessWidget {
               children: <Widget>[
                 const Text('Không có sản phẩm nào'),
                 ElevatedButton(
-                    onPressed: () {}, child: const Text('click để mua sắm'))
+                    onPressed: () {
+                      for (int i = 0; i < controller.countScreen; i++) {
+                        Get.back();
+                      }
+                      controller.resetCountScreen();
+                    },
+                    child: const Text('click để mua sắm'))
               ],
             ),
           )

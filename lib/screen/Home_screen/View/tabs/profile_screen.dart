@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_font.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/edit_profile_screen.dart';
+import 'package:new_ap/screen/Home_screen/View/pages/my_review.dart';
+import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
+import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 import 'package:new_ap/screen/Home_screen/controllers/profile_controller.dart';
 
 import '../../../../config/app_colors.dart';
 import '../../../../config/app_dimens.dart';
+import '../pages/kitchen_screen.dart';
 
 // ignore: must_be_immutable
 class ProfileScreen extends StatelessWidget {
@@ -21,9 +25,10 @@ class ProfileScreen extends StatelessWidget {
               child: CircularProgressIndicator(),
             )
           : Scaffold(
+              backgroundColor: ColorConstants.colorWhite,
               appBar: AppBar(
                 elevation: AppDimens.dimens_0,
-                backgroundColor: ColorConstants.colorGrey0,
+                backgroundColor: ColorConstants.colorWhite,
                 title: const Text(
                   'Profile',
                   style: TextStyle(
@@ -139,7 +144,13 @@ class ProfileScreen extends StatelessWidget {
                             SizedBox(
                               height: AppDimens.dimens_60,
                               child: GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.find<MainController>()
+                                      .getKitchenSearch(controller.favorite);
+                                  Get.find<CartController>()
+                                      .increaseCountScreen();
+                                  Get.to(() => KitchenScreen());
+                                },
                                 child: Row(
                                   children: const <Widget>[
                                     SizedBox(
@@ -219,7 +230,9 @@ class ProfileScreen extends StatelessWidget {
                             SizedBox(
                               height: AppDimens.dimens_60,
                               child: GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(() => MyReviewScreen());
+                                },
                                 child: Row(
                                   children: const <Widget>[
                                     SizedBox(

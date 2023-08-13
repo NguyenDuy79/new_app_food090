@@ -50,6 +50,7 @@ class AppDimens {
   static const double dimens_67 = 67;
   static const double dimens_68 = 68;
   static const double dimens_70 = 70;
+  static const double dimens_74 = 74;
   static const double dimens_80 = 80;
   static const double dimens_85 = 85;
 
@@ -66,8 +67,11 @@ class AppDimens {
   static const double dimens_175 = 175;
   static const double dimens_180 = 180;
   static const double dimens_190 = 190;
+  static const double dimens_195 = 195;
   static const double dimens_200 = 200;
   static const double dimens_210 = 210;
+  static const double dimens_225 = 225;
+  static const double dimens_235 = 235;
 
   static const double dimens_250 = 250;
   static const double dimens_350 = 350;

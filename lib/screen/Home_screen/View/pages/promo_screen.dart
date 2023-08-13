@@ -17,6 +17,7 @@ class PromoScreen extends StatelessWidget {
         MediaQuery.of(context).padding.top;
 
     return Scaffold(
+      backgroundColor: ColorConstants.colorWhite,
       appBar: AppBar(
         backgroundColor: ColorConstants.colorWhite,
         automaticallyImplyLeading: false,

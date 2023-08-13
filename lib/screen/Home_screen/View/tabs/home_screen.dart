@@ -13,15 +13,17 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Obx(
-          () => IndexedStack(
-            index: controller.selectedPage,
-            children: <Widget>[
-              controller.page[0],
-              controller.page[1],
-              controller.page[2],
-              controller.page[3]
-            ],
+        body: SafeArea(
+          child: Obx(
+            () => IndexedStack(
+              index: controller.selectedPage,
+              children: <Widget>[
+                controller.page[0],
+                controller.page[1],
+                controller.page[2],
+                controller.page[3]
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: Obx(() => BottomNavigationBar(

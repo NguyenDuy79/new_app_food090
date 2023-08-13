@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:new_ap/config/app_colors.dart';
 
 import 'package:new_ap/config/app_dimens.dart';
+import 'package:new_ap/screen/Home_screen/widgets/chat_detail_widget/imagePicker.dart';
 import 'package:new_ap/screen/Home_screen/widgets/chat_detail_widget/record_again.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +16,9 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:new_ap/model/chat_model.dart';
+
+import 'package:photo_manager/photo_manager.dart';
+import '../../../common_app/common_widget.dart';
 import '../../../config/app_another.dart';
 import '../../../config/firebase_api.dart';
 import '../../../model/user_model.dart';
@@ -43,7 +48,8 @@ class MessageController extends GetxController
       Rx<List<ChatProfileModel>>([]);
   List<ChatProfileModel> get chatProfileUser => _chatProfileUser.value;
   Rx<List<ChatModel>> chatContent = Rx<List<ChatModel>>([]);
-
+  final RxBool _isExtend = false.obs;
+  bool get isExtend => _isExtend.value;
   final RxBool _checkEmty = false.obs;
   bool get checkEmty => _checkEmty.value;
   File? _storeImage;
@@ -58,6 +64,7 @@ class MessageController extends GetxController
   late TabController _controller;
   TabController get controller => _controller;
   final messageImageController = TextEditingController();
+
   final messageController = TextEditingController();
   final _focusNode = FocusNode();
   FocusNode get focusNode => _focusNode;
@@ -93,6 +100,7 @@ class MessageController extends GetxController
 
   @override
   void onInit() {
+    super.onInit();
     audioPlayer = AudioPlayer();
     audioPlayer.setReleaseMode(ReleaseMode.loop);
 
@@ -121,7 +129,6 @@ class MessageController extends GetxController
       // _historySearch
       //     .bindStream(getStreamSearchHistory(AppAnother.userAuth!.uid));
     }
-    super.onInit();
   }
 
   @override
@@ -149,6 +156,14 @@ class MessageController extends GetxController
 
       return listCartStream;
     });
+  }
+
+  getTrueExtend() {
+    _isExtend.value = true;
+  }
+
+  getFalseExtend() {
+    _isExtend.value = false;
   }
 
   Stream<ChatProfileModel> getChatGroupProfile(String id) {
@@ -282,40 +297,55 @@ class MessageController extends GetxController
               .update({'is not seen message': 0});
         }
       } on PlatformException catch (err) {
-        var message = 'An error, try again';
-        if (err.message != null) {
-          message = err.message!;
-        }
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+        log(err.message.toString());
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
       } catch (err) {
-        ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content: Text(err.toString()),
-          backgroundColor: Theme.of(ctx).colorScheme.error,
-        ));
+        Get.back();
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
       }
     }
   }
 
-  Future<void> getChatDetailScreen(String id) async {
+  Future<void> getChatDetailScreen(String id, BuildContext ctx) async {
     if (AppAnother.userAuth != null) {
-      await FirebaseApi()
-          .chatProfileCollectionPartner(id)
-          .doc(AppAnother.userAuth!.uid)
-          .update({'inside chat group': true});
+      try {
+        await FirebaseApi()
+            .chatProfileCollectionPartner(id)
+            .doc(AppAnother.userAuth!.uid)
+            .update({'inside chat group': true});
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      }
     }
   }
 
-  Future<void> outChatDetailScreen(String id) async {
+  Future<void> outChatDetailScreen(String id, BuildContext ctx) async {
     if (AppAnother.userAuth != null) {
-      await FirebaseApi()
-          .chatProfileCollectionPartner(id)
-          .doc(AppAnother.userAuth!.uid)
-          .update({'inside chat group': false});
+      try {
+        await FirebaseApi()
+            .chatProfileCollectionPartner(id)
+            .doc(AppAnother.userAuth!.uid)
+            .update({'inside chat group': false});
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      }
     }
   }
 
@@ -324,25 +354,24 @@ class MessageController extends GetxController
     Timestamp timestamp = Timestamp.now();
     String dateTime = DateTime.now().toString();
     if (AppAnother.userAuth != null) {
-      if (imageFileList.isNotEmpty) {
+      print(selectedAssetList.length);
+      if (selectedAssetList.isNotEmpty) {
         try {
-          String content = '';
-          var count = 0;
-          for (int i = 0; i < imageFileList.length; i++) {
-            File file = File(imageFileList[i].path);
-            var ref = FirebaseStorage.instance.ref().child('image_message').child(
-                '${AppAnother.userAuth!.uid}-$id:${DateTime.now().toString()}.png');
-            await ref.putFile(file);
-            final url = await ref.getDownloadURL();
-            if (i == 0) {
-              content = content + url;
-            } else {
-              content = '$content"$url';
-            }
+          setHeightSheet(AppDimens.dimens_0);
 
-            count++;
-            log(count.toString());
+          CommonWidget.showDialogLoading(ctx);
+          String content = '';
+          for (var item in selectedAssetList) {
+            File? file = await item.file;
+
+            var ref = FirebaseStorage.instance.ref().child('image_message').child(
+                '${FirebaseAuth.instance.currentUser!.uid}-$id:${DateTime.now().toString()}.png');
+            await ref.putFile(file!);
+            content = item == selectedAssetList[0]
+                ? content + await ref.getDownloadURL()
+                : '$content"${await ref.getDownloadURL()}';
           }
+          _selectedAssetList.value = [];
           ChatModel chatUser = ChatModel(
               content: content,
               id: dateTime,
@@ -371,6 +400,7 @@ class MessageController extends GetxController
               'timestamp': timestamp,
               'is not seen message': notSeen + 1
             });
+            Get.back();
           });
           await FirebaseApi()
               .chatCollectionPartner(id, FirebaseAuth.instance.currentUser!.uid)
@@ -384,7 +414,8 @@ class MessageController extends GetxController
               'timestamp': timestamp,
               'my not seen message': notSeen + 1,
             });
-            imageFileList.clear();
+
+            Get.back();
           });
 
           if (insideChatGroup == true) {
@@ -407,27 +438,24 @@ class MessageController extends GetxController
                 .update({'is not seen message': 0});
           }
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          setHeightSheet(AppDimens.dimens_0);
+          _selectedAssetList.value = [];
+          log(err.message.toString());
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          setHeightSheet(AppDimens.dimens_0);
+          _selectedAssetList.value = [];
+          log(err.toString());
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
         }
       }
     }
   }
 
-  Future<void> changeStatusSeenSearch(int notseen, String id) async {
+  Future<void> changeStatusSeenSearch(
+      int notseen, String id, BuildContext ctx) async {
     if (AppAnother.userAuth != null) {
       FirebaseApi()
           .chatCollection(AppAnother.userAuth!.uid, id)
@@ -435,15 +463,26 @@ class MessageController extends GetxController
           .orderBy('timestamp', descending: true)
           .snapshots()
           .map((event) async {
-        for (var item in event.docs) {
-          await FirebaseApi()
-              .chatCollection(AppAnother.userAuth!.uid, id)
-              .doc(item['id'])
-              .update({'my seen': true});
-          await FirebaseApi()
-              .chatCollectionPartner(id, AppAnother.userAuth!.uid)
-              .doc(item['id'])
-              .update({'is seen': true});
+        try {
+          for (var item in event.docs) {
+            await FirebaseApi()
+                .chatCollection(AppAnother.userAuth!.uid, id)
+                .doc(item['id'])
+                .update({'my seen': true});
+            await FirebaseApi()
+                .chatCollectionPartner(id, AppAnother.userAuth!.uid)
+                .doc(item['id'])
+                .update({'is seen': true});
+          }
+        } on PlatformException catch (err) {
+          Get.back();
+          log(err.message.toString());
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
+        } catch (err) {
+          Get.back();
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
         }
       });
     }
@@ -466,16 +505,27 @@ class MessageController extends GetxController
     }
   }
 
-  Future<void> changeNotSeenValue(String id) async {
+  Future<void> changeNotSeenValue(String id, BuildContext ctx) async {
     if (AppAnother.userAuth != null) {
-      await FirebaseApi()
-          .chatProfileCollection(AppAnother.userAuth!.uid)
-          .doc(id)
-          .update({'my not seen message': 0});
-      await FirebaseApi()
-          .chatProfileCollectionPartner(id)
-          .doc(AppAnother.userAuth!.uid)
-          .update({'is not seen message': 0});
+      try {
+        await FirebaseApi()
+            .chatProfileCollection(AppAnother.userAuth!.uid)
+            .doc(id)
+            .update({'my not seen message': 0});
+        await FirebaseApi()
+            .chatProfileCollectionPartner(id)
+            .doc(AppAnother.userAuth!.uid)
+            .update({'is not seen message': 0});
+      } on PlatformException catch (err) {
+        Get.back();
+        log(err.message.toString());
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      } catch (err) {
+        Get.back();
+        // ignore: use_build_context_synchronously
+        CommonWidget.showErrorDialog(ctx);
+      }
     }
   }
 
@@ -559,21 +609,14 @@ class MessageController extends GetxController
                 .update({'is not seen message': 0});
           }
         } on PlatformException catch (err) {
-          var message = 'An error, try again';
-          if (err.message != null) {
-            message = err.message!;
-          }
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(message),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+          log(err.message.toString());
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
         } catch (err) {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(err.toString()),
-            backgroundColor: Theme.of(ctx).colorScheme.error,
-          ));
+          Get.back();
+          // ignore: use_build_context_synchronously
+          CommonWidget.showErrorDialog(ctx);
         }
       }
     }
@@ -588,16 +631,6 @@ class MessageController extends GetxController
       return;
     }
     _storeImage = File(imageFile.path);
-  }
-
-  final List<XFile> imageFileList = [];
-  Future<void> takePictureGallery() async {
-    final List<XFile> listImage = await ImagePicker().pickMultiImage();
-    if (listImage.isEmpty) {
-      return;
-    }
-    imageFileList.addAll(listImage);
-    log(imageFileList.length.toString());
   }
 
   resetImagePicker() {
@@ -736,12 +769,12 @@ class MessageController extends GetxController
     _recording.value = false;
   }
 
-  visibilityStickerWidget() {
-    if (visibilitySticker) {
-      _visibilitySticker.value = false;
-    } else {
-      _visibilitySticker.value = true;
-    }
+  getTrueVisibility() {
+    _visibilitySticker.value = true;
+  }
+
+  getFalseVisibility() {
+    _visibilitySticker.value = false;
   }
 
   void getBottomSheet(
@@ -1062,5 +1095,92 @@ class MessageController extends GetxController
       }
     }
     return result;
+  }
+
+  //image picker
+  final RxBool _gestureDown = false.obs;
+  bool get gestureDown => _gestureDown.value;
+  final RxDouble _heightSheet = 0.0.obs;
+  double get heightSheet => _heightSheet.value;
+  final RxBool _imagePickerVisi = false.obs;
+  bool get imagePickerVisi => _imagePickerVisi.value;
+  AssetPathEntity? selectedAlbum;
+  Rx<List<AssetPathEntity>> albumList = Rx<List<AssetPathEntity>>([]);
+
+  final Rx<List<AssetEntity>> _assetList = Rx<List<AssetEntity>>([]);
+  List<AssetEntity> get assetList => _assetList.value;
+  final RxList<AssetEntity> _selectedAssetList = <AssetEntity>[].obs;
+  List<AssetEntity> get selectedAssetList => _selectedAssetList;
+  final RxBool _isShowImage = false.obs;
+  bool get isShowImage => _isShowImage.value;
+
+  setHeightSheet(double value) {
+    _heightSheet.value = value;
+  }
+
+  reduceHeightSheet(double value, double heightValue) {
+    if (_heightSheet.value < heightValue || _heightSheet.value > 0) {
+      _heightSheet.value += value;
+    }
+  }
+
+  setFalseGestureDown() {
+    _gestureDown.value = false;
+  }
+
+  setTrueGestureDown() {
+    _gestureDown.value = true;
+  }
+
+  Future loadAlbums(RequestType requestType) async {
+    var permission = await PhotoManager.requestPermissionExtend();
+
+    // ignore: unrelated_type_equality_checks
+    if (permission.hasAccess == true) {
+      albumList.value = await PhotoManager.getAssetPathList(type: requestType);
+    } else {
+      PhotoManager.openSetting();
+    }
+  }
+
+  getAllData(RequestType requestType) async {
+    await loadAlbums(requestType);
+    _isShowImage.value = true;
+
+    if (albumList.value.isNotEmpty) {
+      _assetList.value = await albumList.value[0].getAssetListRange(
+          start: 0, end: await albumList.value[0].assetCountAsync);
+    }
+  }
+
+  getFalseShowImagePicker() {
+    _isShowImage.value = false;
+  }
+
+  void selected(AssetEntity assetEntity) {
+    if (_selectedAssetList.contains(assetEntity)) {
+      _selectedAssetList.remove(assetEntity);
+    } else {
+      _selectedAssetList.add(assetEntity);
+    }
+  }
+
+  ScrollController scrollController = ScrollController();
+
+  showImagePicker(BuildContext context, double height, double paddingTop,
+      String id, int notSeen, bool inside) {
+    setHeightSheet(height * 0.3);
+    showModalBottomSheet(
+        backgroundColor: ColorConstants.colorGrey1,
+        barrierColor: ColorConstants.colorTransparent,
+        elevation: AppDimens.dimens_5,
+        isScrollControlled: true,
+        useSafeArea: true,
+        context: context,
+        isDismissible: true,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.dimens_20)),
+        builder: (_) =>
+            ImagePickerBottom(height, paddingTop, id, inside, notSeen));
   }
 }

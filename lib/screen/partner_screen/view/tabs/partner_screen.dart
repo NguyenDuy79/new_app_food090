@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/screen/partner_screen/controller/partner_controller.dart';
-import '../../../config/app_dimens.dart';
+import '../../../../config/app_dimens.dart';
 
 // ignore: must_be_immutable
 class PartnerScreen extends StatelessWidget {
@@ -13,6 +13,7 @@ class PartnerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         body: Obx(() => controller.page[controller.selectedPage.value]),
         bottomNavigationBar: Obx(
           () => BottomNavigationBar(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_dimens.dart';
 import 'package:new_ap/screen/Home_screen/View/pages/kitchen_screen.dart';
+import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
 import 'package:new_ap/screen/Home_screen/controllers/main_controller.dart';
 
 import '../../../config/app_colors.dart';
@@ -15,7 +16,7 @@ class SearchKitchenScreen extends StatelessWidget {
     controller.getValueHistorySearch();
     return WillPopScope(
         onWillPop: () async {
-          controller.textEditing.text = '';
+          controller.textEditing.clear();
           controller.changeStatusEmpty();
           return true;
         },
@@ -36,7 +37,7 @@ class SearchKitchenScreen extends StatelessWidget {
                       IconButton(
                           padding: const EdgeInsets.all(0),
                           onPressed: () {
-                            controller.textEditing.text = '';
+                            controller.textEditing.clear();
                             controller.changeStatusEmpty();
                             Get.back();
                           },
@@ -70,6 +71,7 @@ class SearchKitchenScreen extends StatelessWidget {
                             controller.changeStatusEmpty();
                             controller.getSuggest(value.trim());
                           } else {
+                            controller.textEditing.clear();
                             controller.changeStatusEmpty();
                           }
                         },
@@ -82,6 +84,8 @@ class SearchKitchenScreen extends StatelessWidget {
                                 controller
                                     .getListQuery(controller.textEditing.text);
                                 controller.getFalseIsMain();
+                                Get.find<CartController>()
+                                    .increaseCountScreen();
                                 Get.off(() => KitchenScreen());
                               }
                             } else {
@@ -94,7 +98,7 @@ class SearchKitchenScreen extends StatelessWidget {
                               }
                             }
                           } else {
-                            controller.textEditing.text = '';
+                            controller.textEditing.clear();
                           }
                         },
                       )),
@@ -110,6 +114,8 @@ class SearchKitchenScreen extends StatelessWidget {
                                     controller.getListQuery(
                                         controller.textEditing.text);
                                     controller.getFalseIsMain();
+                                    Get.find<CartController>()
+                                        .increaseCountScreen();
                                     Get.off(() => KitchenScreen());
                                   }
                                 } else {
@@ -122,7 +128,7 @@ class SearchKitchenScreen extends StatelessWidget {
                                   }
                                 }
                               } else {
-                                controller.textEditing.text = '';
+                                controller.textEditing.clear();
                               }
                             },
                             iconSize: AppDimens.dimens_30,
@@ -136,103 +142,104 @@ class SearchKitchenScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              Obx(() => controller.isCheck == true
+                  ? SizedBox(
+                      height: height * 0.8,
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              if (controller.isMain) {
+                                controller.submitQuerySearch(
+                                    controller.kitchenName[index], context);
+                                controller.getListQuery(
+                                    controller.kitchenName[index]);
+                                controller.textEditing.text =
+                                    controller.kitchenName[index];
+                                controller.getFalseIsMain();
+                                Get.find<CartController>()
+                                    .increaseCountScreen();
+                                Get.off(() => KitchenScreen());
+                              } else {
+                                controller.submitQuerySearch(
+                                    controller.kitchenName[index], context);
+                                controller.getListQuery(
+                                    controller.kitchenName[index]);
+                                controller.textEditing.text =
+                                    controller.kitchenName[index];
 
-              Obx(
-                () => SizedBox(
-                  height: height * 0.8,
-                  child: ListView.builder(
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          if (controller.isMain) {
-                            controller.submitQuerySearch(
-                                controller.kitchenName[index], context);
-                            controller
-                                .getListQuery(controller.kitchenName[index]);
-                            controller.textEditing.text =
-                                controller.kitchenName[index];
-                            controller.getFalseIsMain();
-                            Get.off(() => KitchenScreen());
-                          } else {
-                            controller.submitQuerySearch(
-                                controller.kitchenName[index], context);
-                            controller
-                                .getListQuery(controller.kitchenName[index]);
-                            controller.textEditing.text =
-                                controller.kitchenName[index];
-
-                            Get.back();
-                          }
-                        },
-                        child: Column(
-                          children: <Widget>[
-                            ListTile(
-                              leading: Text(
-                                controller.kitchenName[index],
-                                style: const TextStyle(
-                                    fontSize: AppDimens.dimens_18),
-                              ),
+                                Get.back();
+                              }
+                            },
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Text(
+                                    controller.kitchenName[index],
+                                    style: const TextStyle(
+                                        fontSize: AppDimens.dimens_18),
+                                  ),
+                                ),
+                                const Divider(
+                                  thickness: AppDimens.dimens_1,
+                                  height: AppDimens.dimens_0,
+                                )
+                              ],
                             ),
-                            const Divider(
-                              thickness: AppDimens.dimens_1,
-                              height: AppDimens.dimens_0,
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                    itemCount: controller.kitchenName.length,
-                  ),
-                ),
-              ),
-              // if (controller.isCheck == false)
-              //   SizedBox(
-              //       height: height * 0.8,
-              //       child: ListView.builder(
-              //         itemBuilder: (context, index) {
-              //           return GestureDetector(
-              //             onTap: () {
-              //               if (controller.isMain) {
-              //                 controller.submitQuerySearch(
-              //                     controller.historySearch[index], context);
-              //                 controller.getListQuery(
-              //                     controller.historySearch[index]);
-              //                 controller.changeStatusEmpty();
-              //                 controller.textEditing.text =
-              //                     controller.historySearch[index];
-              //                 controller.getFalseIsMain();
-              //                 Get.off(() => KitchenScreen());
-              //               } else {
-              //                 controller.submitQuerySearch(
-              //                     controller.historySearch[index], context);
+                          );
+                        },
+                        itemCount: controller.kitchenName.length,
+                      ),
+                    )
+                  : SizedBox(
+                      height: height * 0.8,
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              if (controller.isMain) {
+                                controller.submitQuerySearch(
+                                    controller.historySearch[index], context);
+                                controller.getListQuery(
+                                    controller.historySearch[index]);
+                                controller.changeStatusEmpty();
+                                controller.textEditing.text =
+                                    controller.historySearch[index];
+                                controller.getFalseIsMain();
+                                Get.find<CartController>()
+                                    .increaseCountScreen();
+                                Get.off(() => KitchenScreen());
+                              } else {
+                                controller.submitQuerySearch(
+                                    controller.historySearch[index], context);
 
-              //                 controller.changeStatusEmpty();
-              //                 controller.textEditing.text =
-              //                     controller.historySearch[index];
-              //                 Get.back();
-              //                 controller.getListQuery(
-              //                     controller.historySearch[index]);
-              //               }
-              //             },
-              //             child: Column(
-              //               children: <Widget>[
-              //                 ListTile(
-              //                   leading: Text(
-              //                     controller.historySearch[index],
-              //                     style: const TextStyle(
-              //                         fontSize: AppDimens.dimens_18),
-              //                   ),
-              //                 ),
-              //                 const Divider(
-              //                   thickness: AppDimens.dimens_1,
-              //                   height: AppDimens.dimens_0,
-              //                 )
-              //               ],
-              //             ),
-              //           );
-              //         },
-              //         itemCount: controller.itemCount.value,
-              //       ))
+                                controller.changeStatusEmpty();
+                                controller.textEditing.text =
+                                    controller.historySearch[index];
+                                Get.back();
+                                controller.getListQuery(
+                                    controller.historySearch[index]);
+                              }
+                            },
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Text(
+                                    controller.historySearch[index],
+                                    style: const TextStyle(
+                                        fontSize: AppDimens.dimens_18),
+                                  ),
+                                ),
+                                const Divider(
+                                  thickness: AppDimens.dimens_1,
+                                  height: AppDimens.dimens_0,
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                        itemCount: controller.itemCount.value,
+                      ))),
             ],
           ),
         )));

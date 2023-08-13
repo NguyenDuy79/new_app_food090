@@ -1,9 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:new_ap/config/app_colors.dart';
 import 'package:new_ap/config/app_dimens.dart';
 import 'package:new_ap/model/kitchen_model.dart';
-import 'package:new_ap/screen/Home_screen/controllers/home_controller.dart';
 import 'package:new_ap/screen/Home_screen/controllers/cart_controller.dart';
 import 'package:new_ap/screen/Home_screen/widgets/cart_widget/bill.dart';
 import 'package:new_ap/screen/Home_screen/widgets/cart_widget/list_cart.dart';
@@ -26,6 +27,7 @@ class CartScreen extends GetWidget<CartController> {
         return true;
       },
       child: Scaffold(
+        backgroundColor: ColorConstants.colorWhite,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: IconButton(
@@ -40,7 +42,7 @@ class CartScreen extends GetWidget<CartController> {
             ),
           ),
           centerTitle: true,
-          backgroundColor: ColorConstants.colorGrey0,
+          backgroundColor: ColorConstants.colorWhite,
           elevation: 0,
           title: const Text(
             'Cart',
@@ -64,44 +66,65 @@ class CartScreen extends GetWidget<CartController> {
             ],
           ),
         ),
-        bottomNavigationBar: Obx(() => Container(
-            margin: const EdgeInsets.symmetric(
-                horizontal: AppDimens.dimens_10, vertical: AppDimens.dimens_10),
-            height: AppDimens.dimens_54,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.dimens_15))),
-                onPressed: () async {
-                  if (controller.cartOrder.isNotEmpty) {
-                    await controller.orders(context).then((value) async {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Đặt hàng thành công'),
-                        backgroundColor: ColorConstants.colorBlack,
-                      ));
-                      Get.find<HomeController>().setStateSelectedValue(1);
-                      Get.offNamed('/home-screen');
-
-                      await controller.deleteCartOrder().then((value) {
-                        controller.setValue();
-                      });
-                    });
-                  }
-                },
-                child: controller.error.value
-                    ? const Text('Không thể áp dụng mã giảm',
-                        style: TextStyle(
-                            fontSize: 23,
-                            fontWeight: FontWeight.bold,
-                            color: ColorConstants.colorWhite))
-                    : const Text('Đặt hàng',
-                        style: TextStyle(
-                            fontSize: 23,
-                            fontWeight: FontWeight.bold,
-                            color: ColorConstants.colorWhite))))),
+        bottomNavigationBar: Obx(() => controller.cart.isEmpty
+            ? Container(
+                height: AppDimens.dimens_54,
+                color: ColorConstants.colorWhite,
+              )
+            : Container(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.dimens_20,
+                    vertical: AppDimens.dimens_10),
+                height: AppDimens.dimens_54,
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorConstants.themeColor,
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.dimens_15))),
+                    onPressed: () async {
+                      if (controller.cartOrder.isNotEmpty) {
+                        await controller.orders(context);
+                      } else {
+                        if (controller.error.value) {
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                                  backgroundColor: ColorConstants.colorRed1,
+                                  duration: Duration(seconds: 1),
+                                  content: Text(
+                                    'Bạn chưa chọn sản phẩm nào',
+                                    style: TextStyle(
+                                        fontSize: AppDimens.dimens_20),
+                                  )));
+                        } else {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                                  backgroundColor: ColorConstants.colorRed1,
+                                  duration: Duration(seconds: 1),
+                                  content: Text(
+                                    'Bạn chưa chọn sản phẩm nào',
+                                    style: TextStyle(
+                                        fontSize: AppDimens.dimens_20),
+                                  )));
+                        }
+                      }
+                    },
+                    child: controller.error.value
+                        ? const Text('Không thể áp dụng mã giảm',
+                            style: TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.colorWhite))
+                        : const Text('Đặt hàng',
+                            style: TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.colorWhite))))),
       ),
     );
   }

@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:new_ap/common_app/common_widget.dart';
 import 'package:new_ap/model/cart_model.dart';
 
 import '../../../config/app_another.dart';
@@ -11,7 +13,7 @@ import '../../../config/firebase_api.dart';
 class DetailProductController extends GetxController {
   ValueNotifier<bool> loading = ValueNotifier(false);
   final RxBool _loadingData = false.obs;
-  RxBool get loadingData => _loadingData;
+  bool get loadingData => _loadingData.value;
   final RxInt _count = 1.obs;
   int get count => _count.value;
   final Rx<List<CartModel>> _cart = Rx<List<CartModel>>([]);
@@ -22,7 +24,7 @@ class DetailProductController extends GetxController {
   void onInit() {
     if (FirebaseAuth.instance.currentUser != null) {
       _cart.bindStream(
-          AppAnother().cartStream(FirebaseAuth.instance.currentUser!.uid));
+          AppAnother.cartStream(FirebaseAuth.instance.currentUser!.uid));
     }
     super.onInit();
   }
@@ -84,26 +86,16 @@ class DetailProductController extends GetxController {
                     (value[result].data() as Map<String, dynamic>)['quantity'] +
                         cart.quantity
               }).then((value) {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                return ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Thêm vào giỏ hàng thành công')));
+                CommonWidget.showDialogSuccess(context);
               });
               _loadingData.value = false;
-            } catch (error) {
-              showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                        title: const Text('An error ocurrend!'),
-                        content: Text(error.toString()),
-                        actions: <Widget>[
-                          TextButton(
-                              onPressed: () {
-                                Get.back();
-                              },
-                              child: const Text('Ok'))
-                        ],
-                      ));
+            } on PlatformException catch (err) {
+              Get.back();
+              log(err.message.toString());
+              CommonWidget.showErrorDialog(context);
+            } catch (err) {
+              Get.back();
+              CommonWidget.showErrorDialog(context);
             }
           }
         }
@@ -114,15 +106,21 @@ class DetailProductController extends GetxController {
                 .doc(dateTime.toString())
                 .set(cart.toJson())
                 .then((value) {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              return ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Thêm vào giỏ hàng thành công')));
+              CommonWidget.showDialogSuccess(context);
             });
             loading.value = false;
             _loadingData.value = false;
             log('add');
-          } catch (error) {
-            rethrow;
+          } on PlatformException catch (err) {
+            Get.back();
+            log(err.message.toString());
+
+            // ignore: use_build_context_synchronously
+            CommonWidget.showErrorDialog(context);
+          } catch (err) {
+            Get.back();
+            // ignore: use_build_context_synchronously
+            CommonWidget.showErrorDialog(context);
           }
         }
       });
